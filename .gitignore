@@ -1,0 +1,9 @@
+# Ignore Python and temp files
+*.py
+*.pyc
+__pycache__/
+*.bat
+*.vbs
+*.log
+.DS_Store
+Thumbs.db

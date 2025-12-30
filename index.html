@@ -1,0 +1,3377 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Quiz Hub</title>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Fira+Code:wght@400;500&display=swap"
+        rel="stylesheet">
+    <style>
+        :root {
+            --bg-body: #111111;
+            --bg-sidebar: #181818;
+            --bg-card: rgba(24, 24, 24, 0.8);
+            --bg-card-solid: #1a1a1a;
+            --border: rgba(255, 255, 255, 0.08);
+            --border-hover: rgba(255, 255, 255, 0.2);
+            --text-main: #f5f5f5;
+            --text-muted: #737373;
+            --accent: #e5e5e5;
+            --accent-glow: rgba(255, 255, 255, 0.08);
+            --success: #4ade80;
+            --success-glow: rgba(74, 222, 128, 0.15);
+            --error: #f87171;
+            --error-glow: rgba(248, 113, 113, 0.15);
+        }
+
+        body.light-mode {
+            --bg-body: #fefce8;
+            --bg-sidebar: #fffbeb;
+            --bg-card: rgba(255, 251, 235, 0.9);
+            --bg-card-solid: #fffbeb;
+            --border: rgba(180, 83, 9, 0.2);
+            --border-hover: rgba(180, 83, 9, 0.5);
+            --text-main: #1c1917;
+            --text-muted: #78716c;
+            --accent: #b45309;
+            --accent-glow: rgba(180, 83, 9, 0.15);
+            --success: #16a34a;
+            --success-glow: rgba(22, 163, 74, 0.15);
+            --error: #dc2626;
+            --error-glow: rgba(220, 38, 38, 0.15);
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: 'Plus Jakarta Sans', -apple-system, sans-serif;
+            background: var(--bg-body);
+            color: var(--text-main);
+            min-height: 100vh;
+            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        body::before {
+            content: '';
+            position: fixed;
+            inset: 0;
+            background: radial-gradient(ellipse 80% 60% at 50% -10%, rgba(255, 255, 255, 0.02), transparent);
+            pointer-events: none;
+            z-index: 0;
+        }
+
+        body.light-mode::before {
+            background:
+                radial-gradient(ellipse 80% 50% at 50% -20%, rgba(251, 191, 36, 0.2), transparent),
+                radial-gradient(ellipse 60% 40% at 100% 100%, rgba(245, 158, 11, 0.1), transparent);
+        }
+
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+            padding: 48px 24px;
+            position: relative;
+            z-index: 1;
+        }
+
+        header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 48px;
+        }
+
+        header h1 {
+            font-size: 2rem;
+            font-weight: 800;
+            letter-spacing: -0.03em;
+        }
+
+        .header-actions {
+            display: flex;
+            gap: 12px;
+        }
+
+        .btn {
+            background: transparent;
+            border: 1px solid var(--border);
+            color: var(--text-main);
+            padding: 10px 18px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 0.85rem;
+            font-weight: 600;
+            font-family: inherit;
+            transition: all 0.2s ease;
+        }
+
+        .btn:hover {
+            border-color: var(--border-hover);
+            background: rgba(255, 255, 255, 0.03);
+        }
+
+        .btn-primary {
+            background: var(--text-main);
+            color: var(--bg-body);
+            border-color: var(--text-main);
+        }
+
+        .btn-primary:hover {
+            opacity: 0.9;
+        }
+
+        .btn-danger {
+            color: var(--error);
+        }
+
+        .btn-danger:hover {
+            border-color: var(--error);
+            background: var(--error-glow);
+        }
+
+        .btn-small {
+            padding: 6px 12px;
+            font-size: 0.75rem;
+        }
+
+        /* Stats Overview */
+        .stats-overview {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 16px;
+            margin-bottom: 48px;
+        }
+
+        .stat-card {
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 20px;
+            text-align: center;
+        }
+
+        .stat-value {
+            font-size: 2rem;
+            font-weight: 800;
+            font-family: 'Fira Code', monospace;
+        }
+
+        .stat-label {
+            font-size: 0.75rem;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+            margin-top: 4px;
+        }
+
+        /* Section Header */
+        .section-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+
+        .section-title {
+            font-size: 0.8rem;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+            font-weight: 600;
+        }
+
+        /* Course Folder */
+        .course-folder {
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            margin-bottom: 16px;
+            overflow: hidden;
+        }
+
+        .folder-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 20px 24px;
+            cursor: pointer;
+            transition: background 0.2s ease;
+        }
+
+        .folder-header:hover {
+            background: rgba(255, 255, 255, 0.02);
+        }
+
+        .folder-info {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+        }
+
+        .folder-icon {
+            width: 40px;
+            height: 40px;
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.2rem;
+            color: var(--text-muted);
+        }
+
+        .folder-details h3 {
+            font-size: 1.1rem;
+            font-weight: 700;
+            margin-bottom: 4px;
+        }
+
+        .folder-meta {
+            font-size: 0.8rem;
+            color: var(--text-muted);
+        }
+
+        .folder-stats {
+            display: flex;
+            align-items: center;
+            gap: 20px;
+        }
+
+        .folder-stat {
+            text-align: right;
+        }
+
+        .folder-stat-value {
+            font-size: 1rem;
+            font-weight: 700;
+            font-family: 'Fira Code', monospace;
+        }
+
+        .folder-stat-label {
+            font-size: 0.7rem;
+            color: var(--text-muted);
+            text-transform: uppercase;
+        }
+
+        .folder-toggle {
+            color: var(--text-muted);
+            font-size: 1.2rem;
+            transition: transform 0.2s ease;
+            margin-left: 16px;
+        }
+
+        .course-folder.open .folder-toggle {
+            transform: rotate(90deg);
+        }
+
+        .folder-actions {
+            display: flex;
+            gap: 8px;
+            margin-left: 16px;
+        }
+
+        .folder-actions .btn {
+            opacity: 0;
+            transition: opacity 0.2s ease;
+        }
+
+        .folder-header:hover .folder-actions .btn {
+            opacity: 1;
+        }
+
+        /* Quiz List */
+        .quiz-list {
+            border-top: 1px solid var(--border);
+            display: none;
+        }
+
+        .course-folder.open .quiz-list {
+            display: block;
+        }
+
+        .quiz-item {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 16px 24px 16px 80px;
+            border-bottom: 1px solid var(--border);
+            transition: background 0.2s ease;
+        }
+
+        .quiz-item:last-child {
+            border-bottom: none;
+        }
+
+        .quiz-item:hover {
+            background: rgba(255, 255, 255, 0.02);
+        }
+
+        .quiz-info {
+            flex: 1;
+        }
+
+        .quiz-info h4 {
+            font-size: 0.95rem;
+            font-weight: 600;
+            margin-bottom: 4px;
+        }
+
+        .quiz-info p {
+            font-size: 0.8rem;
+            color: var(--text-muted);
+        }
+
+        .quiz-stats {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+        }
+
+        .quiz-progress {
+            width: 100px;
+            height: 6px;
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 100px;
+            overflow: hidden;
+        }
+
+        .quiz-progress-bar {
+            height: 100%;
+            background: var(--text-main);
+            border-radius: 100px;
+            transition: width 0.3s ease;
+        }
+
+        .quiz-actions {
+            display: flex;
+            gap: 8px;
+            margin-left: 16px;
+        }
+
+        .quiz-actions .btn {
+            opacity: 0;
+            transition: opacity 0.2s ease;
+        }
+
+        .quiz-item:hover .quiz-actions .btn {
+            opacity: 1;
+        }
+
+        .add-quiz-btn {
+            padding: 12px 24px 12px 80px;
+            width: 100%;
+            text-align: left;
+            background: none;
+            border: none;
+            color: var(--text-muted);
+            font-size: 0.85rem;
+            font-family: inherit;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .add-quiz-btn:hover {
+            color: var(--text-main);
+            background: rgba(255, 255, 255, 0.02);
+        }
+
+        /* Empty State */
+        .empty-state {
+            text-align: center;
+            padding: 60px 20px;
+            color: var(--text-muted);
+        }
+
+        .empty-state h3 {
+            font-size: 1.2rem;
+            margin-bottom: 8px;
+            color: var(--text-main);
+        }
+
+        /* Modal */
+        .modal-overlay {
+            position: fixed;
+            inset: 0;
+            background: rgba(0, 0, 0, 0.85);
+            backdrop-filter: blur(8px);
+            z-index: 100;
+            display: none;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .modal-overlay.active {
+            display: flex;
+        }
+
+        .modal {
+            background: var(--bg-card-solid);
+            border: 1px solid var(--border);
+            width: 90%;
+            max-width: 500px;
+            padding: 32px;
+            border-radius: 12px;
+            max-height: 80vh;
+            overflow-y: auto;
+        }
+
+        .modal h2 {
+            font-size: 1.3rem;
+            font-weight: 700;
+            margin-bottom: 24px;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-group label {
+            display: block;
+            font-size: 0.85rem;
+            font-weight: 600;
+            margin-bottom: 8px;
+        }
+
+        .form-group input,
+        .form-group textarea {
+            width: 100%;
+            padding: 12px 16px;
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            color: var(--text-main);
+            font-size: 0.95rem;
+            font-family: inherit;
+            transition: border-color 0.2s ease;
+        }
+
+        .form-group input:focus,
+        .form-group textarea:focus {
+            outline: none;
+            border-color: var(--border-hover);
+        }
+
+        .form-group textarea {
+            min-height: 200px;
+            font-family: 'Fira Code', monospace;
+            font-size: 0.85rem;
+            resize: vertical;
+        }
+
+        .form-group small {
+            display: block;
+            margin-top: 6px;
+            font-size: 0.75rem;
+            color: var(--text-muted);
+        }
+
+        .modal-actions {
+            display: flex;
+            gap: 12px;
+            margin-top: 24px;
+        }
+
+        .modal-actions .btn {
+            flex: 1;
+        }
+
+        .error-message {
+            background: var(--error-glow);
+            border: 1px solid var(--error);
+            color: var(--error);
+            padding: 12px 16px;
+            border-radius: 8px;
+            font-size: 0.85rem;
+            margin-bottom: 16px;
+            display: none;
+        }
+
+        .error-message.show {
+            display: block;
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .container {
+                padding: 24px 16px;
+            }
+
+            .stats-overview {
+                grid-template-columns: repeat(2, 1fr);
+            }
+
+            header h1 {
+                font-size: 1.5rem;
+            }
+
+            .quiz-item {
+                padding-left: 24px;
+            }
+
+            .add-quiz-btn {
+                padding-left: 24px;
+            }
+
+            .folder-actions .btn,
+            .quiz-actions .btn {
+                opacity: 1;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <header>
+            <h1>Quiz Hub</h1>
+            <div class="header-actions">
+                <button class="btn" id="theme-btn" onclick="toggleTheme()">Light</button>
+                <button class="btn btn-primary" onclick="openNewCourseModal()">+ New Course</button>
+            </div>
+        </header>
+
+        <div class="stats-overview" id="stats-overview"></div>
+
+        <div class="section-header">
+            <span class="section-title">Your Courses</span>
+        </div>
+
+        <div id="courses-container"></div>
+    </div>
+
+    <!-- Modal -->
+    <div class="modal-overlay" id="modal-overlay" onclick="if(event.target===this) closeModal()">
+        <div class="modal" id="modal-content"></div>
+    </div>
+
+    <!-- Embedded course data (Firefox compatible) -->
+    <script>
+        // OS Chapters 1-2: Introduction & System Structures
+        // Course data file for Quiz Hub
+
+        window.OS_CH1_2_DATA = [
+            // ============================================================
+            // CHAPTER 1: INTRODUCTION
+            // ============================================================
+
+            {
+                question: "An operating system acts as an intermediary between:",
+                options: ["User and hardware", "Hardware and software", "Compiler and hardware", "Application and compiler"],
+                answer: "User and hardware",
+                explanation: "The operating system is a program that manages computer hardware and acts as an intermediary between the computer user and the computer hardware[cite: 817, 821].",
+                page: 10,
+                lecture: "Chapter 1: Introduction"
+            },
+            {
+                question: "What is the primary goal of an operating system?",
+                options: ["To make the computer system convenient to use", "To use computer hardware efficiently", "To act as an interface between user and hardware", "To provide network services"],
+                answer: "To act as an interface between user and hardware",
+                explanation: "The OS goals are to execute user programs, make solving problems easier, make the system convenient to use, and use hardware efficiently[cite: 830, 831, 832].",
+                page: 12,
+                lecture: "Chapter 1: Introduction"
+            },
+            {
+                question: "Which of the following is a batch processing system?",
+                options: ["Mainframe computers", "Personal computers", "Handheld computers", "Embedded systems"],
+                answer: "Mainframe computers",
+                explanation: "Mainframes or minicomputers are shared computers where resource utilization is important to keep all users happy[cite: 839, 840].",
+                page: 13,
+                lecture: "Chapter 1: Introduction"
+            },
+            {
+                question: "An operating system is a resource allocator and control program.",
+                options: ["TRUE", "FALSE"],
+                answer: "TRUE",
+                explanation: "The OS acts as a resource allocator (managing CPU time, memory, I/O) and a control program to prevent errors and improper use[cite: 846, 848, 851, 854].",
+                page: 14,
+                lecture: "Chapter 1: Introduction"
+            },
+            {
+                question: "The operating system kernel is:",
+                options: ["Always in memory", "Loaded on demand", "Stored in secondary storage", "Part of application software"],
+                answer: "Always in memory",
+                explanation: "The kernel is the one program running at all times on the computer[cite: 858].",
+                page: 16,
+                lecture: "Chapter 1: Introduction"
+            },
+            {
+                question: "The bootstrap program is the first program to run when a computer is powered on.",
+                options: ["TRUE", "FALSE"],
+                answer: "TRUE",
+                explanation: "The bootstrap program is loaded at power-up or reboot and initializes all aspects of the system[cite: 876, 879].",
+                page: 18,
+                lecture: "Chapter 1: Introduction"
+            },
+            {
+                question: "Bootstrap program is stored in:",
+                options: ["RAM", "ROM or EEPROM", "Hard disk", "Cache memory"],
+                answer: "ROM or EEPROM",
+                explanation: "It is typically stored in ROM or EPROM, generally known as firmware[cite: 878].",
+                page: 18,
+                lecture: "Chapter 1: Introduction"
+            },
+            {
+                question: "GRUB is an example of:",
+                options: ["Boot loader", "File system", "Shell", "System call"],
+                answer: "Boot loader",
+                explanation: "The bootstrap program initializes the system and loads the operating system kernel to start execution[cite: 879, 880].",
+                page: 18,
+                lecture: "Chapter 1: Introduction"
+            },
+            {
+                question: "System boot process starts with:",
+                options: ["Bootstrap program loading OS", "User login", "Application loading", "Network initialization"],
+                answer: "Bootstrap program loading OS",
+                explanation: "The bootstrap program loads the operating system kernel and starts execution[cite: 880].",
+                page: 18,
+                lecture: "Chapter 1: Introduction"
+            },
+            {
+                question: "The main purpose of an interrupt is to:",
+                options: ["Stop program execution permanently", "Signal CPU of an event requiring attention", "Transfer control to user program", "Allocate memory"],
+                answer: "Signal CPU of an event requiring attention",
+                explanation: "The occurrence of an event is usually signaled by an interrupt from either hardware or software[cite: 901].",
+                page: 21,
+                lecture: "Chapter 1: Introduction"
+            },
+            {
+                question: "Interrupts can only be generated by hardware devices.",
+                options: ["TRUE", "FALSE"],
+                answer: "FALSE",
+                explanation: "Hardware may trigger an interrupt by sending a signal to the CPU, and software may trigger one via a system call[cite: 903, 904].",
+                page: 21,
+                lecture: "Chapter 1: Introduction"
+            },
+            {
+                question: "Which interrupt is generated by the CPU itself?",
+                options: ["Hardware interrupt", "Software interrupt (trap)", "External interrupt", "Timer interrupt"],
+                answer: "Software interrupt (trap)",
+                explanation: "Software may trigger an interrupt by executing a special operation called a system call or monitor call[cite: 904].",
+                page: 21,
+                lecture: "Chapter 1: Introduction"
+            },
+            {
+                question: "The interrupt vector contains:",
+                options: ["Addresses of interrupt service routines", "Interrupt priorities", "Device identifiers", "Process states"],
+                answer: "Addresses of interrupt service routines",
+                explanation: "The interrupt vector contains the addresses of all the service routines[cite: 909].",
+                page: 22,
+                lecture: "Chapter 1: Introduction"
+            },
+            {
+                question: "A trap is a software-generated interrupt.",
+                options: ["TRUE", "FALSE"],
+                answer: "TRUE",
+                explanation: "A trap or exception is a software-generated interrupt caused either by an error or a user request[cite: 911].",
+                page: 22,
+                lecture: "Chapter 1: Introduction"
+            },
+            {
+                question: "A trap is caused by:",
+                options: ["Hardware failure", "Error or user request", "Timer", "I/O completion"],
+                answer: "Error or user request",
+                explanation: "A trap or exception is a software-generated interrupt caused by an error or user request[cite: 911].",
+                page: 22,
+                lecture: "Chapter 1: Introduction"
+            },
+            {
+                question: "Context switch involves:",
+                options: ["Saving state of current process", "Loading state of new process", "Switching between processes", "Switching users"],
+                answer: "Saving state of current process",
+                explanation: "The OS preserves the state of the CPU by storing the registers and the program counter[cite: 930].",
+                page: 24,
+                lecture: "Chapter 1: Introduction"
+            },
+            {
+                question: "Context switching is overhead and does no useful work.",
+                options: ["TRUE", "FALSE"],
+                answer: "TRUE",
+                explanation: "During context switching, the OS saves the CPU state and determines which interrupt occurred, which is necessary management but not user program execution[cite: 930, 931].",
+                page: 24,
+                lecture: "Chapter 1: Introduction"
+            },
+            {
+                question: "DMA (Direct Memory Access) is used for:",
+                options: ["High-speed I/O devices", "CPU scheduling", "Memory allocation", "Process synchronization"],
+                answer: "High-speed I/O devices",
+                explanation: "DMA is indicated for high-speed devices to move blocks of data[cite: 1021, 1022].",
+                page: 30,
+                lecture: "Chapter 1: Introduction"
+            },
+            {
+                question: "DMA transfers data directly between I/O device and CPU registers.",
+                options: ["TRUE", "FALSE"],
+                answer: "FALSE",
+                explanation: "DMA involves moving instructions and data directly into memory, bypassing constant CPU intervention[cite: 1021, 1022].",
+                page: 30,
+                lecture: "Chapter 1: Introduction"
+            },
+            {
+                question: "Which storage is volatile?",
+                options: ["RAM", "ROM", "Hard disk", "Flash memory"],
+                answer: "RAM",
+                explanation: "Main memory is typically volatile[cite: 972].",
+                page: 27,
+                lecture: "Chapter 1: Introduction"
+            },
+            {
+                question: "Cache memory is:",
+                options: ["Faster than main memory", "Slower than main memory", "Same speed as main memory", "Faster than registers"],
+                answer: "Faster than main memory",
+                explanation: "In the storage hierarchy, cache is faster than main memory[cite: 989, 1007, 1009].",
+                page: 29,
+                lecture: "Chapter 1: Introduction"
+            },
+            {
+                question: "The memory hierarchy is ordered from fastest to slowest as:",
+                options: ["Registers, cache, main memory, disk", "Cache, registers, main memory, disk", "Main memory, cache, registers, disk", "Disk, main memory, cache, registers"],
+                answer: "Registers, cache, main memory, disk",
+                explanation: "The hierarchy goes from registers (fastest) to cache, main memory, then magnetic disks[cite: 991, 992, 995, 1000].",
+                page: 29,
+                lecture: "Chapter 1: Introduction"
+            },
+            {
+                question: "Cache memory is larger but slower than main memory.",
+                options: ["TRUE", "FALSE"],
+                answer: "FALSE",
+                explanation: "Cache is smaller and faster than main memory[cite: 989, 990, 1007].",
+                page: 29,
+                lecture: "Chapter 1: Introduction"
+            },
+            {
+                question: "Asymmetric multiprocessing involves:",
+                options: ["Master-slave relationship", "All processors equal", "No coordination needed", "Single processor only"],
+                answer: "Master-slave relationship",
+                explanation: "In Asymmetric Multiprocessing, each processor is assigned a specific task[cite: 1037].",
+                page: 32,
+                lecture: "Chapter 1: Introduction"
+            },
+            {
+                question: "Symmetric multiprocessing (SMP) means:",
+                options: ["Each processor performs different tasks", "All processors are peers", "One processor is master", "Processors share no memory"],
+                answer: "All processors are peers",
+                explanation: "In Symmetric Multiprocessing, each processor performs all tasks[cite: 1038].",
+                page: 32,
+                lecture: "Chapter 1: Introduction"
+            },
+            {
+                question: "In asymmetric multiprocessing, all processors are treated equally.",
+                options: ["TRUE", "FALSE"],
+                answer: "FALSE",
+                explanation: "In Asymmetric Multiprocessing, each processor is assigned a specific task, unlike SMP where each performs all tasks[cite: 1037, 1038].",
+                page: 32,
+                lecture: "Chapter 1: Introduction"
+            },
+            {
+                question: "Symmetric multiprocessing requires special master processor.",
+                options: ["TRUE", "FALSE"],
+                answer: "FALSE",
+                explanation: "In Symmetric Multiprocessing, each processor performs all tasks, meaning they are peers[cite: 1038].",
+                page: 32,
+                lecture: "Chapter 1: Introduction"
+            },
+            {
+                question: "Multicore systems have:",
+                options: ["Multiple computing cores on single chip", "Multiple separate processors", "Single core with hyperthreading", "Multiple motherboards"],
+                answer: "Multiple computing cores on single chip",
+                explanation: "Multicore designs put multiple cores on a single chip[cite: 1057, 1058, 1060].",
+                page: 34,
+                lecture: "Chapter 1: Introduction"
+            },
+            {
+                question: "Multicore systems have multiple processors on separate chips.",
+                options: ["TRUE", "FALSE"],
+                answer: "FALSE",
+                explanation: "A dual-core design puts multiple cores on a single chip[cite: 1057, 1058].",
+                page: 34,
+                lecture: "Chapter 1: Introduction"
+            },
+            {
+                question: "The degree of multiprogramming refers to:",
+                options: ["Number of CPUs", "Number of processes in memory", "Number of users", "Number of I/O devices"],
+                answer: "Number of processes in memory",
+                explanation: "Multiprogramming keeps a subset of total jobs in memory so the CPU always has one to execute[cite: 1067, 1068].",
+                page: 35,
+                lecture: "Chapter 1: Introduction"
+            },
+            {
+                question: "In multiprogramming, the CPU switches to another job when:",
+                options: ["Current job finishes", "Current job waits for I/O", "Timer expires", "User requests it"],
+                answer: "Current job waits for I/O",
+                explanation: "When a job has to wait (for I/O for example), OS switches to another job[cite: 1070].",
+                page: 35,
+                lecture: "Chapter 1: Introduction"
+            },
+            {
+                question: "A CPU bound process:",
+                options: ["Requires more computation", "Spends more time in I/O", "Never performs I/O", "Uses only memory"],
+                answer: "Requires more computation",
+                explanation: "Multiprogramming is needed because a single user cannot keep CPU and I/O devices busy at all times[cite: 1067].",
+                page: 35,
+                lecture: "Chapter 1: Introduction"
+            },
+            {
+                question: "An I/O bound process:",
+                options: ["Spends more time doing I/O", "Requires more CPU time", "Never uses CPU", "Only uses disk"],
+                answer: "Spends more time doing I/O",
+                explanation: "The OS switches to another job when the current job must wait for I/O[cite: 1070].",
+                page: 35,
+                lecture: "Chapter 1: Introduction"
+            },
+            {
+                question: "Spooling allows overlap of I/O of one job with computation of another.",
+                options: ["TRUE", "FALSE"],
+                answer: "TRUE",
+                explanation: "Multiprogramming organizes jobs so the CPU always has one to execute even while others wait for I/O[cite: 1067, 1070].",
+                page: 35,
+                lecture: "Chapter 1: Introduction"
+            },
+            {
+                question: "In multiprogramming, multiple programs are kept in memory simultaneously.",
+                options: ["TRUE", "FALSE"],
+                answer: "TRUE",
+                explanation: "A subset of total jobs in the system is kept in memory[cite: 1068].",
+                page: 36,
+                lecture: "Chapter 1: Introduction"
+            },
+            {
+                question: "Time-sharing systems primarily focus on:",
+                options: ["Interactive computer system", "Batch processing", "Real-time processing", "Network services"],
+                answer: "Interactive computer system",
+                explanation: "Timesharing (multitasking) allows users to interact with each job while it is running, creating interactive computing[cite: 1082].",
+                page: 37,
+                lecture: "Chapter 1: Introduction"
+            },
+            {
+                question: "Virtual memory allows:",
+                options: ["Execution of programs larger than physical memory", "Faster program execution", "Better GUI display", "Network communication"],
+                answer: "Execution of programs larger than physical memory",
+                explanation: "Virtual memory allows execution of processes not completely in memory[cite: 1084].",
+                page: 37,
+                lecture: "Chapter 1: Introduction"
+            },
+            {
+                question: "Turnaround time is:",
+                options: ["Time from submission to completion", "Time in ready queue", "Time in execution", "Time in waiting"],
+                answer: "Time from submission to completion",
+                explanation: "In timesharing, response time should be < 1 second[cite: 1083].",
+                page: 37,
+                lecture: "Chapter 1: Introduction"
+            },
+            {
+                question: "Response time in interactive systems is:",
+                options: ["Time from request to first response", "Total execution time", "Time to complete process", "Time in ready queue"],
+                answer: "Time from request to first response",
+                explanation: "In interactive computing, response time should be < 1 second[cite: 1083].",
+                page: 37,
+                lecture: "Chapter 1: Introduction"
+            },
+            {
+                question: "Time-sharing and multitasking are the same concept.",
+                options: ["TRUE", "FALSE"],
+                answer: "TRUE",
+                explanation: "Timesharing (multitasking) is a logical extension of multiprogramming[cite: 1082].",
+                page: 37,
+                lecture: "Chapter 1: Introduction"
+            },
+            {
+                question: "Virtual memory allows execution of processes that are not completely in memory.",
+                options: ["TRUE", "FALSE"],
+                answer: "TRUE",
+                explanation: "Virtual memory allows execution of processes not completely in memory[cite: 1084].",
+                page: 37,
+                lecture: "Chapter 1: Introduction"
+            },
+            {
+                question: "Dual-mode operation provides:",
+                options: ["Protection for the operating system", "Faster execution", "Multiple user support", "Network communication"],
+                answer: "Protection for the operating system",
+                explanation: "Dual-mode operation allows OS to protect itself and other system components[cite: 1093].",
+                page: 39,
+                lecture: "Chapter 1: Introduction"
+            },
+            {
+                question: "A mode bit is used to:",
+                options: ["Distinguish between user and kernel mode", "Control I/O operations", "Manage memory", "Schedule processes"],
+                answer: "Distinguish between user and kernel mode",
+                explanation: "A bit, called the mode bit, is added to indicate the current mode: kernel (0) or user (1)[cite: 1097].",
+                page: 40,
+                lecture: "Chapter 1: Introduction"
+            },
+            {
+                question: "Privileged instructions can only be executed in:",
+                options: ["User mode", "Kernel mode", "Both modes", "Protected mode only"],
+                answer: "Kernel mode",
+                explanation: "Some instructions are designated as privileged, only executable in kernel mode[cite: 1099].",
+                page: 40,
+                lecture: "Chapter 1: Introduction"
+            },
+            {
+                question: "The kernel is the part of OS that runs in user mode.",
+                options: ["TRUE", "FALSE"],
+                answer: "FALSE",
+                explanation: "The kernel runs in kernel mode (mode bit = 0)[cite: 1113].",
+                page: 41,
+                lecture: "Chapter 1: Introduction"
+            },
+            {
+                question: "A system call changes the mode from user mode to kernel mode.",
+                options: ["TRUE", "FALSE"],
+                answer: "TRUE",
+                explanation: "System call changes mode to kernel, return from call resets it to user[cite: 1100].",
+                page: 41,
+                lecture: "Chapter 1: Introduction"
+            },
+            {
+                question: "Privileged instructions can be executed in user mode.",
+                options: ["TRUE", "FALSE"],
+                answer: "FALSE",
+                explanation: "Privileged instructions are only executable in kernel mode[cite: 1099].",
+                page: 41,
+                lecture: "Chapter 1: Introduction"
+            },
+            {
+                question: "Caching is primarily used for:",
+                options: ["Copying information to faster storage", "Backing up data", "Encrypting data", "Compressing data"],
+                answer: "Copying information to faster storage",
+                explanation: "The storage table shows that registers, cache, and main memory are all backed by slower storage[cite: 1116].",
+                page: 42,
+                lecture: "Chapter 1: Introduction"
+            },
+            {
+                question: "Protection mechanisms in OS:",
+                options: ["Control access to resources", "Increase CPU speed", "Manage network traffic", "Compile programs"],
+                answer: "Control access to resources",
+                explanation: "Protection is any mechanism for controlling access of processes or users to resources defined by the OS[cite: 1128].",
+                page: 43,
+                lecture: "Chapter 1: Introduction"
+            },
+            {
+                question: "In a computer system, protection is ensured by:",
+                options: ["Hardware support only", "Operating system policies only", "Hardware and OS working together", "User programs"],
+                answer: "Hardware and OS working together",
+                explanation: "Dual-mode operation uses hardware (mode bit) to protect system components[cite: 1093, 1097].",
+                page: 43,
+                lecture: "Chapter 1: Introduction"
+            },
+            {
+                question: "A clustered system is characterized by:",
+                options: ["Multiple systems working together", "Single system with multiple cores", "Virtual machines on one system", "Distributed file systems only"],
+                answer: "Multiple systems working together",
+                explanation: "Distributed computing is a collection of separate systems networked together[cite: 1146].",
+                page: 45,
+                lecture: "Chapter 1: Introduction"
+            },
+            {
+                question: "Real-time systems are characterized by:",
+                options: ["Strict time constraints", "High throughput", "Maximum CPU utilization", "Multiple users"],
+                answer: "Strict time constraints",
+                explanation: "Cloud Computing and other specialized environments deliver computing and storage as a service[cite: 1217].",
+                page: 45,
+                lecture: "Chapter 1: Introduction"
+            },
+            {
+                question: "Hard real-time systems:",
+                options: ["Must meet deadlines always", "Can tolerate some deadline misses", "Are less critical than soft real-time", "Have no timing constraints"],
+                answer: "Must meet deadlines always",
+                explanation: "Cloud Computing delivering computing and storage requires specific services[cite: 1217].",
+                page: 45,
+                lecture: "Chapter 1: Introduction"
+            },
+            {
+                question: "Real-time systems must complete operations within strict time constraints.",
+                options: ["TRUE", "FALSE"],
+                answer: "TRUE",
+                explanation: "Distributed systems and cloud components require precise management[cite: 1146, 1217].",
+                page: 45,
+                lecture: "Chapter 1: Introduction"
+            },
+            {
+                question: "Hard real-time systems can tolerate occasional deadline misses.",
+                options: ["TRUE", "FALSE"],
+                answer: "FALSE",
+                explanation: "Hard real-time systems must meet all deadlines[cite: 1217].",
+                page: 45,
+                lecture: "Chapter 1: Introduction"
+            },
+            {
+                question: "Virtual machines provide:",
+                options: ["Illusion of multiple machines", "Faster execution", "Less memory usage", "Direct hardware access"],
+                answer: "Illusion of multiple machines",
+                explanation: "Virtualization is a technology that allows operating systems to run as applications within other operating systems[cite: 1174].",
+                page: 48,
+                lecture: "Chapter 1: Introduction"
+            },
+            {
+                question: "Virtual machines provide complete protection between system components.",
+                options: ["TRUE", "FALSE"],
+                answer: "TRUE",
+                explanation: "Virtualization allows guest OSes to run isolated from each other[cite: 1174, 1177].",
+                page: 48,
+                lecture: "Chapter 1: Introduction"
+            },
+            {
+                question: "Which of the following is NOT a major OS component?",
+                options: ["Process Management", "Memory Management", "Compiler Design", "Storage Management"],
+                answer: "Compiler Design",
+                explanation: "Application programs include compilers, but they are not listed as a core OS component like hardware management[cite: 794, 860].",
+                page: 8,
+                lecture: "Chapter 1: Introduction"
+            },
+            {
+                question: "Throughput refers to:",
+                options: ["Number of processes completed per unit time", "Time to complete a process", "CPU utilization", "Response time"],
+                answer: "Number of processes completed per unit time",
+                explanation: "Increased throughput means getting more work done in less time[cite: 1030].",
+                page: 31,
+                lecture: "Chapter 1: Introduction"
+            },
+            {
+                question: "Throughput is the number of processes completed per unit time.",
+                options: ["TRUE", "FALSE"],
+                answer: "TRUE",
+                explanation: "Increased throughput means we expect to get more work done in less time[cite: 1030].",
+                page: 31,
+                lecture: "Chapter 1: Introduction"
+            },
+            {
+                question: "NUMA (Non-Uniform Memory Access) means:",
+                options: ["Access time depends on memory location", "All memory access is uniform", "No memory sharing", "Only local memory exists"],
+                answer: "Access time depends on memory location",
+                explanation: "Storage hierarchy shows that access time varies significantly across different levels[cite: 989, 1007].",
+                page: 29,
+                lecture: "Chapter 1: Introduction"
+            },
+
+            // ============================================================
+            // CHAPTER 2: OPERATING-SYSTEM STRUCTURES
+            // ============================================================
+
+            {
+                question: "Which is NOT an OS service for users?",
+                options: ["Program execution", "I/O operations", "Power management", "Communication"],
+                answer: "Power management",
+                explanation: "Services helpful to user include UI, program execution, I/O operations, file-system manipulation, communications, and error detection[cite: 1275, 1277, 1278, 1283, 1285, 1295].",
+                page: 4,
+                lecture: "Chapter 2: Operating-System Structures"
+            },
+            {
+                question: "Operating system services are provided for:",
+                options: ["User convenience only", "System efficiency only", "User convenience and system efficiency", "Hardware management only"],
+                answer: "User convenience and system efficiency",
+                explanation: "OS services provide functions helpful to user and functions for ensuring efficient operation[cite: 1274, 1302].",
+                page: 7,
+                lecture: "Chapter 2: Operating-System Structures"
+            },
+            {
+                question: "A user interface can be:",
+                options: ["Command-line interface (CLI)", "Graphical user interface (GUI)", "Batch interface", "Any of these types"],
+                answer: "Any of these types",
+                explanation: "User interface varies between Command-Line (CLI), Graphics User Interface (GUI), and Batch[cite: 1276].",
+                page: 4,
+                lecture: "Chapter 2: Operating-System Structures"
+            },
+            {
+                question: "A shell is:",
+                options: ["Command interpreter", "Part of kernel", "Hardware component", "Device driver"],
+                answer: "Command interpreter",
+                explanation: "CLI or command interpreter (sometimes called shells) allows direct command entry[cite: 1336, 1339].",
+                page: 10,
+                lecture: "Chapter 2: Operating-System Structures"
+            },
+            {
+                question: "The shell is part of the operating system kernel.",
+                options: ["TRUE", "FALSE"],
+                answer: "FALSE",
+                explanation: "CLI is sometimes implemented in kernel, but sometimes by system programs[cite: 1338].",
+                page: 10,
+                lecture: "Chapter 2: Operating-System Structures"
+            },
+            {
+                question: "System calls provide:",
+                options: ["Interface to OS services", "Direct hardware access", "Compiler functions", "Database operations"],
+                answer: "Interface to OS services",
+                explanation: "System calls are the programming interface to the services provided by the OS[cite: 1537].",
+                page: 15,
+                lecture: "Chapter 2: Operating-System Structures"
+            },
+            {
+                question: "The main advantage of using API rather than system calls is:",
+                options: ["Program portability", "Faster execution", "Less memory usage", "Better security"],
+                answer: "Program portability",
+                explanation: "Mostly accessed via high-level API rather than direct system call use[cite: 1539].",
+                page: 15,
+                lecture: "Chapter 2: Operating-System Structures"
+            },
+            {
+                question: "An API (Application Programming Interface) is:",
+                options: ["Set of functions available to programmers", "Hardware specification", "System call itself", "Operating system kernel"],
+                answer: "Set of functions available to programmers",
+                explanation: "Standard APIs like Win32, POSIX, and Java provide a set of functions for programmers[cite: 1540].",
+                page: 15,
+                lecture: "Chapter 2: Operating-System Structures"
+            },
+            {
+                question: "APIs hide the details of system calls from programmers.",
+                options: ["TRUE", "FALSE"],
+                answer: "TRUE",
+                explanation: "System calls are mostly accessed by programs via high-level API rather than direct system call use[cite: 1539].",
+                page: 15,
+                lecture: "Chapter 2: Operating-System Structures"
+            },
+            {
+                question: "System calls provide a means for user programs to request OS services.",
+                options: ["TRUE", "FALSE"],
+                answer: "TRUE",
+                explanation: "System calls are the programming interface to the services provided by the OS[cite: 1537].",
+                page: 15,
+                lecture: "Chapter 2: Operating-System Structures"
+            },
+            {
+                question: "System call parameters can be passed by:",
+                options: ["Registers", "Block or table in memory", "Stack", "Any of these methods"],
+                answer: "Any of these methods",
+                explanation: "System call parameters like file descriptors, buffers, and counts are passed to the function[cite: 1575].",
+                page: 17,
+                lecture: "Chapter 2: Operating-System Structures"
+            },
+            {
+                question: "Which is a process control system call?",
+                options: ["fork()", "read()", "open()", "chmod()"],
+                answer: "fork()",
+                explanation: "Process control system calls include CreateProcess() and fork()[cite: 1598].",
+                page: 19,
+                lecture: "Chapter 2: Operating-System Structures"
+            },
+            {
+                question: "Which is a file management system call?",
+                options: ["wait()", "create()", "malloc()", "signal()"],
+                answer: "create()",
+                explanation: "File manipulation system calls include CreateFile() and open()[cite: 1598].",
+                page: 19,
+                lecture: "Chapter 2: Operating-System Structures"
+            },
+            {
+                question: "System calls for communication include:",
+                options: ["send() and receive()", "open() and close()", "fork() and exec()", "malloc() and free()"],
+                answer: "send() and receive()",
+                explanation: "Communication system calls include CreatePipe() and shmget()[cite: 1598].",
+                page: 19,
+                lecture: "Chapter 2: Operating-System Structures"
+            },
+            {
+                question: "Which is NOT a type of system call?",
+                options: ["Process control", "File management", "Compilation", "Device management"],
+                answer: "Compilation",
+                explanation: "Types of system calls include Process control, File management, Device management, Information maintenance, Communications, and Protection[cite: 1621, 1633, 1640, 1647, 1653, 1662].",
+                page: 21,
+                lecture: "Chapter 2: Operating-System Structures"
+            },
+            {
+                question: "System programs provide:",
+                options: ["Convenient environment for program development", "Kernel functions", "Hardware drivers.", "Network protocols"],
+                answer: "Convenient environment for program development",
+                explanation: "System programs provide a convenient environment for program development and execution[cite: 1668].",
+                page: 27,
+                lecture: "Chapter 2: Operating-System Structures"
+            },
+            {
+                question: "System programs provide a convenient environment for program development and execution.",
+                options: ["TRUE", "FALSE"],
+                answer: "TRUE",
+                explanation: "System programs provide a convenient environment for program development and execution[cite: 1668].",
+                page: 27,
+                lecture: "Chapter 2: Operating-System Structures"
+            },
+            {
+                question: "UNIX operating system structure consists of layers including:",
+                options: ["Kernel at the core", "Shell at the core", "Applications at the core", "Drivers at the core"],
+                answer: "Kernel at the core",
+                explanation: "UNIX structure consists of hardware at the core, then kernel interface, then system libraries[cite: 1779].",
+                page: 39,
+                lecture: "Chapter 2: Operating-System Structures"
+            },
+            {
+                question: "The MS-DOS operating system uses:",
+                options: ["Single-tasking", "Multi-tasking", "Time-sharing", "Distributed processing"],
+                answer: "Single-tasking",
+                explanation: "MS-DOS is described as a simple structure[cite: 1764].",
+                page: 37,
+                lecture: "Chapter 2: Operating-System Structures"
+            },
+            {
+                question: "MS-DOS was designed with a layered structure.",
+                options: ["TRUE", "FALSE"],
+                answer: "FALSE",
+                explanation: "MS-DOS is categorized as a simple structure, while other systems use a layered approach[cite: 1758, 1764, 1782].",
+                page: 37,
+                lecture: "Chapter 2: Operating-System Structures"
+            },
+            {
+                question: "Layered approach in OS design means:",
+                options: ["OS divided into layers", "OS divided into modules", "OS as single unit", "OS distributed across network"],
+                answer: "OS divided into layers",
+                explanation: "In a layered approach, the OS is divided into layers where layer 0 is hardware and layer N is the user interface[cite: 1782, 1783, 1785].",
+                page: 40,
+                lecture: "Chapter 2: Operating-System Structures"
+            },
+            {
+                question: "The main advantage of layered approach is:",
+                options: ["Simplicity of construction", "High performance", "Less memory usage", "Faster execution"],
+                answer: "Simplicity of construction",
+                explanation: "The layered approach is one way to structure very large programs like general-purpose OSes[cite: 1756, 1757, 1760].",
+                page: 40,
+                lecture: "Chapter 2: Operating-System Structures"
+            },
+            {
+                question: "The main disadvantage of layered approach is:",
+                options: ["Careful planning required", "Easy to implement", "Very modular", "Highly portable"],
+                answer: "Careful planning required",
+                explanation: "Building and configuring an OS is a highly creative and complex task[cite: 1726].",
+                page: 40,
+                lecture: "Chapter 2: Operating-System Structures"
+            },
+            {
+                question: "Layered approach makes OS easier to debug and verify.",
+                options: ["TRUE", "FALSE"],
+                answer: "TRUE",
+                explanation: "Defining goals and specifications is the start of design, and structured approaches help manage complexity[cite: 1717, 1719].",
+                page: 40,
+                lecture: "Chapter 2: Operating-System Structures"
+            },
+            {
+                question: "A microkernel provides:",
+                options: ["Minimal process and memory management", "All OS services in kernel", "No process management", "Only file management"],
+                answer: "Minimal process and memory management",
+                explanation: "The microkernel moves as much from kernel into user space as possible[cite: 1789, 1813].",
+                page: 41,
+                lecture: "Chapter 2: Operating-System Structures"
+            },
+            {
+                question: "Microkernel architecture moves services to user space.",
+                options: ["TRUE", "FALSE"],
+                answer: "TRUE",
+                explanation: "The microkernel moves as much from the kernel into user space[cite: 1789].",
+                page: 41,
+                lecture: "Chapter 2: Operating-System Structures"
+            },
+            {
+                question: "A monolithic kernel:",
+                options: ["Has all services in kernel space", "Has minimal services in kernel", "Has no services in kernel", "Uses message passing only"],
+                answer: "Has all services in kernel space",
+                explanation: "In a Monolithic Kernel, VFS, IPC, File System, and Schedulers are all in kernel mode[cite: 1795, 1801, 1805].",
+                page: 42,
+                lecture: "Chapter 2: Operating-System Structures"
+            },
+            {
+                question: "Disadvantage of microkernel is:",
+                options: ["Performance overhead of user-kernel communication", "Complex design", "No modularity", "Poor security"],
+                answer: "Performance overhead of user-kernel communication",
+                explanation: "Communication in a microkernel is done via message passing[cite: 1816, 1823].",
+                page: 42,
+                lecture: "Chapter 2: Operating-System Structures"
+            },
+            {
+                question: "A monolithic kernel is more modular than a microkernel.",
+                options: ["TRUE", "FALSE"],
+                answer: "FALSE",
+                explanation: "A microkernel is designed to be minimal by moving components to user space[cite: 1789, 1813].",
+                page: 42,
+                lecture: "Chapter 2: Operating-System Structures"
+            },
+            {
+                question: "Communication between processes can be achieved through:",
+                options: ["Shared memory", "Message passing", "Either shared memory or message passing", "Files only"],
+                answer: "Either shared memory or message passing",
+                explanation: "In a microkernel system, application programs communicate with services via messages[cite: 1816, 1823].",
+                page: 43,
+                lecture: "Chapter 2: Operating-System Structures"
+            },
+            {
+                question: "Loadable kernel modules:",
+                options: ["Can be loaded at boot or runtime", "Must be loaded at boot only", "Cannot be unloaded", "Are not used in modern OS"],
+                answer: "Can be loaded at boot or runtime",
+                explanation: "Loadable kernel modules are used to extend kernel functionality dynamically[cite: 1736].",
+                page: 34,
+                lecture: "Chapter 2: Operating-System Structures"
+            },
+            {
+                question: "Loadable kernel modules are more flexible than layered approach.",
+                options: ["TRUE", "FALSE"],
+                answer: "TRUE",
+                explanation: "Scripting languages like PERL and Python are used for systems programs alongside C/C++[cite: 1736].",
+                page: 34,
+                lecture: "Chapter 2: Operating-System Structures"
+            },
+            {
+                question: "Operating system generation (OS gen) involves:",
+                options: ["Configuring OS for specific hardware", "Updating OS kernel", "Installing applications", "Creating user accounts"],
+                answer: "Configuring OS for specific hardware",
+                explanation: "OS design is affected by choice of hardware and type of system[cite: 1720].",
+                page: 32,
+                lecture: "Chapter 2: Operating-System Structures"
+            },
+            {
+                question: "The Java Virtual Machine (JVM):",
+                options: ["Executes Java bytecode", "Executes machine code", "Executes assembly code", "Executes Python code"],
+                answer: "Executes Java bytecode",
+                explanation: "The Java API is for the Java virtual machine (JVM)[cite: 1540].",
+                page: 15,
+                lecture: "Chapter 2: Operating-System Structures"
+            },
+            {
+                question: "Debugging a system involves:",
+                options: ["Finding and fixing errors", "Compiling programs", "Installing software", "Managing users"],
+                answer: "Finding and fixing errors",
+                explanation: "Debugging facilities enhance user's and programmer's abilities to efficiently use the system[cite: 1299].",
+                page: 6,
+                lecture: "Chapter 2: Operating-System Structures"
+            },
+            {
+                question: "Benefits of microkernel include:",
+                options: ["Easier to extend", "Better performance", "Less overhead", "Simpler design"],
+                answer: "Easier to extend",
+                explanation: "Internal structure of different OSes can vary widely, and modular designs like microkernels offer flexibility[cite: 1718].",
+                page: 32,
+                lecture: "Chapter 2: Operating-System Structures"
+            }
+        ];
+
+        // OS Chapters 3-4: Processes, Threads & Linux Commands
+        // Course data file for Quiz Hub
+
+        window.OS_CH3_4_DATA = [
+            // ============================================================
+            // CHAPTER 3: PROCESSES (Lecture 3)
+            // ============================================================
+
+            // --- Page 2 ---
+            {
+                question: "What is a program before it becomes a process?",
+                options: ["An active entity in memory", "A passive entity stored on disk", "A running application", "A system call"],
+                answer: "A passive entity stored on disk",
+                page: 2,
+                lecture: "Chapter 3: Processes"
+            },
+            {
+                question: "When does a program become a process?",
+                options: ["When it is written by a programmer", "When it is compiled", "When an executable file is loaded into memory", "When it is saved on disk"],
+                answer: "When an executable file is loaded into memory",
+                page: 2,
+                lecture: "Chapter 3: Processes"
+            },
+            {
+                question: "Which of the following is NOT a component of a process in memory?",
+                options: ["Text Section", "Data Section", "Compiler", "Stack"],
+                answer: "Compiler",
+                page: 2,
+                lecture: "Chapter 3: Processes"
+            },
+            {
+                question: "The text section of a process contains:",
+                options: ["Global variables", "The program code", "Dynamically allocated memory", "Temporary data"],
+                answer: "The program code",
+                page: 2,
+                lecture: "Chapter 3: Processes"
+            },
+            {
+                question: "What does the heap section of a process contain?",
+                options: ["Function parameters", "Program code", "Memory dynamically allocated during runtime", "Global variables"],
+                answer: "Memory dynamically allocated during runtime",
+                page: 2,
+                lecture: "Chapter 3: Processes"
+            },
+            {
+                question: "The stack section contains:",
+                options: ["Global variables only", "Program code only", "Function parameters, return addresses, and local variables", "Dynamically allocated memory only"],
+                answer: "Function parameters, return addresses, and local variables",
+                page: 2,
+                lecture: "Chapter 3: Processes"
+            },
+
+            // --- Page 3 ---
+            {
+                question: "A Process Control Block (PCB) is used to:",
+                options: ["Compile programs", "Represent a process in the operating system", "Store user data", "Manage disk space"],
+                answer: "Represent a process in the operating system",
+                page: 3,
+                lecture: "Chapter 3: Processes"
+            },
+            {
+                question: "Which information is NOT typically stored in a PCB?",
+                options: ["Process identifier", "CPU registers", "Source code", "Process state"],
+                answer: "Source code",
+                page: 3,
+                lecture: "Chapter 3: Processes"
+            },
+            {
+                question: "The process state 'new' means:",
+                options: ["The process is being executed", "The process is being created", "The process is waiting for I/O", "The process has finished"],
+                answer: "The process is being created",
+                page: 3,
+                lecture: "Chapter 3: Processes"
+            },
+            {
+                question: "When a process is in the 'running' state, it means:",
+                options: ["It is waiting for I/O", "Instructions are being executed", "It is in the ready queue", "It has been terminated"],
+                answer: "Instructions are being executed",
+                page: 3,
+                lecture: "Chapter 3: Processes"
+            },
+            {
+                question: "A process in the 'waiting' state is:",
+                options: ["Being executed by the CPU", "Ready to be assigned to a processor", "Waiting for some event to occur", "Being created"],
+                answer: "Waiting for some event to occur",
+                page: 3,
+                lecture: "Chapter 3: Processes"
+            },
+            {
+                question: "The 'ready' state means the process is:",
+                options: ["Executing instructions", "Waiting to be assigned to a processor", "Waiting for I/O completion", "Terminated"],
+                answer: "Waiting to be assigned to a processor",
+                page: 3,
+                lecture: "Chapter 3: Processes"
+            },
+            {
+                question: "Which queue contains all processes in the system?",
+                options: ["Ready queue", "Job queue", "Device queue", "Waiting queue"],
+                answer: "Job queue",
+                page: 3,
+                lecture: "Chapter 3: Processes"
+            },
+
+            // --- Page 4 ---
+            {
+                question: "The ready queue contains processes that are:",
+                options: ["Waiting for I/O devices", "Being created", "Residing in main memory, ready and waiting to execute", "Terminated"],
+                answer: "Residing in main memory, ready and waiting to execute",
+                page: 4,
+                lecture: "Chapter 3: Processes"
+            },
+            {
+                question: "Device queues contain processes:",
+                options: ["Ready to execute", "Being created", "Waiting for an I/O device", "In the terminated state"],
+                answer: "Waiting for an I/O device",
+                page: 4,
+                lecture: "Chapter 3: Processes"
+            },
+            {
+                question: "The short-term scheduler is also known as:",
+                options: ["Job scheduler", "CPU scheduler", "Medium-term scheduler", "Process scheduler"],
+                answer: "CPU scheduler",
+                page: 4,
+                lecture: "Chapter 3: Processes"
+            },
+            {
+                question: "How frequently is the short-term scheduler invoked?",
+                options: ["Every few seconds", "Every few minutes", "Every few milliseconds", "Once per hour"],
+                answer: "Every few milliseconds",
+                page: 4,
+                lecture: "Chapter 3: Processes"
+            },
+            {
+                question: "The long-term scheduler:",
+                options: ["Selects which process should be executed next", "Selects which processes should be brought into the ready queue", "Removes processes from memory", "Manages I/O devices"],
+                answer: "Selects which processes should be brought into the ready queue",
+                page: 4,
+                lecture: "Chapter 3: Processes"
+            },
+            {
+                question: "The long-term scheduler controls:",
+                options: ["CPU utilization", "The degree of multiprogramming", "I/O operations", "Memory allocation only"],
+                answer: "The degree of multiprogramming",
+                page: 4,
+                lecture: "Chapter 3: Processes"
+            },
+            {
+                question: "The medium-term scheduler is responsible for:",
+                options: ["CPU scheduling", "Job admission", "Swapping processes between memory and disk", "Device management"],
+                answer: "Swapping processes between memory and disk",
+                page: 4,
+                lecture: "Chapter 3: Processes"
+            },
+
+            // --- Page 5 ---
+            {
+                question: "What is swapping in the context of medium-term scheduling?",
+                options: ["Exchanging data between processes", "Removing process from memory to disk and bringing it back", "Switching between user mode and kernel mode", "Changing process priorities"],
+                answer: "Removing process from memory to disk and bringing it back",
+                page: 5,
+                lecture: "Chapter 3: Processes"
+            },
+            {
+                question: "Cooperating processes are processes that:",
+                options: ["Run independently without interaction", "Can affect or be affected by other processes", "Never share data", "Run only in kernel mode"],
+                answer: "Can affect or be affected by other processes",
+                page: 5,
+                lecture: "Chapter 3: Processes"
+            },
+            {
+                question: "Which is NOT a model of Interprocess Communication (IPC)?",
+                options: ["Shared memory", "Message passing", "Direct hardware access", "Both A and B are IPC models"],
+                answer: "Direct hardware access",
+                page: 5,
+                lecture: "Chapter 3: Processes"
+            },
+            {
+                question: "In the shared memory IPC model:",
+                options: ["Processes exchange messages", "Processes share a region of memory", "Processes use system calls only", "Processes cannot communicate"],
+                answer: "Processes share a region of memory",
+                page: 5,
+                lecture: "Chapter 3: Processes"
+            },
+            {
+                question: "In message passing IPC:",
+                options: ["Processes share memory directly", "Processes communicate by exchanging messages", "No communication occurs", "Only the kernel can communicate"],
+                answer: "Processes communicate by exchanging messages",
+                page: 5,
+                lecture: "Chapter 3: Processes"
+            },
+            {
+                question: "The data section of a process contains:",
+                options: ["Program code", "Global variables", "Local variables", "Function parameters"],
+                answer: "Global variables",
+                page: 5,
+                lecture: "Chapter 3: Processes"
+            },
+            {
+                question: "Which scheduler must be fast because it is invoked frequently?",
+                options: ["Long-term scheduler", "Medium-term scheduler", "Short-term scheduler", "I/O scheduler"],
+                answer: "Short-term scheduler",
+                page: 5,
+                lecture: "Chapter 3: Processes"
+            },
+
+            // --- Page 6 ---
+            {
+                question: "The program counter in a PCB stores:",
+                options: ["The number of programs running", "The location of the next instruction to execute", "The process identifier", "The CPU utilization"],
+                answer: "The location of the next instruction to execute",
+                page: 6,
+                lecture: "Chapter 3: Processes"
+            },
+            {
+                question: "CPU registers information in the PCB contains:",
+                options: ["Contents of all process-centric registers", "Only the program counter", "Memory addresses only", "I/O device information"],
+                answer: "Contents of all process-centric registers",
+                page: 6,
+                lecture: "Chapter 3: Processes"
+            },
+            {
+                question: "Accounting information in the PCB includes:",
+                options: ["Process state only", "CPU used and clock time elapsed since start", "Program code", "User passwords"],
+                answer: "CPU used and clock time elapsed since start",
+                page: 6,
+                lecture: "Chapter 3: Processes"
+            },
+            {
+                question: "A program is an active entity while a process is a passive entity.",
+                options: ["TRUE", "FALSE"],
+                answer: "FALSE",
+                page: 6,
+                lecture: "Chapter 3: Processes"
+            },
+            {
+                question: "The text section of a process is typically read-only and might be shared by multiple processes.",
+                options: ["TRUE", "FALSE"],
+                answer: "TRUE",
+                page: 6,
+                lecture: "Chapter 3: Processes"
+            },
+            {
+                question: "The heap contains temporary data such as function parameters.",
+                options: ["TRUE", "FALSE"],
+                answer: "FALSE",
+                page: 6,
+                lecture: "Chapter 3: Processes"
+            },
+            {
+                question: "A Process Control Block (PCB) is used to represent a process in the operating system.",
+                options: ["TRUE", "FALSE"],
+                answer: "TRUE",
+                page: 6,
+                lecture: "Chapter 3: Processes"
+            },
+            {
+                question: "A process can only be in one of three states: new, running, or terminated.",
+                options: ["TRUE", "FALSE"],
+                answer: "FALSE",
+                page: 6,
+                lecture: "Chapter 3: Processes"
+            },
+
+            // --- Page 7 ---
+            {
+                question: "The ready state means instructions are currently being executed.",
+                options: ["TRUE", "FALSE"],
+                answer: "FALSE",
+                page: 7,
+                lecture: "Chapter 3: Processes"
+            },
+            {
+                question: "The long-term scheduler is invoked more frequently than the short-term scheduler.",
+                options: ["TRUE", "FALSE"],
+                answer: "FALSE",
+                page: 7,
+                lecture: "Chapter 3: Processes"
+            },
+            {
+                question: "The short-term scheduler must be fast because it is invoked very frequently.",
+                options: ["TRUE", "FALSE"],
+                answer: "TRUE",
+                page: 7,
+                lecture: "Chapter 3: Processes"
+            },
+            {
+                question: "Device queues contain processes waiting for I/O devices.",
+                options: ["TRUE", "FALSE"],
+                answer: "TRUE",
+                page: 7,
+                lecture: "Chapter 3: Processes"
+            },
+            {
+                question: "Independent processes cannot affect or be affected by other processes in the system.",
+                options: ["TRUE", "FALSE"],
+                answer: "TRUE",
+                page: 7,
+                lecture: "Chapter 3: Processes"
+            },
+            {
+                question: "Interprocess Communication (IPC) has only one model: shared memory.",
+                options: ["TRUE", "FALSE"],
+                answer: "FALSE",
+                page: 7,
+                lecture: "Chapter 3: Processes"
+            },
+            {
+                question: "The stack section contains global variables.",
+                options: ["TRUE", "FALSE"],
+                answer: "FALSE",
+                page: 7,
+                lecture: "Chapter 3: Processes"
+            },
+            {
+                question: "The long-term scheduler controls the degree of multiprogramming.",
+                options: ["TRUE", "FALSE"],
+                answer: "TRUE",
+                page: 7,
+                lecture: "Chapter 3: Processes"
+            },
+            {
+                question: "The medium-term scheduler is responsible for swapping processes between memory and disk.",
+                options: ["TRUE", "FALSE"],
+                answer: "TRUE",
+                page: 7,
+                lecture: "Chapter 3: Processes"
+            },
+            {
+                question: "All cooperating processes need interprocess communication (IPC).",
+                options: ["TRUE", "FALSE"],
+                answer: "TRUE",
+                page: 7,
+                lecture: "Chapter 3: Processes"
+            },
+
+            // ============================================================
+            // CHAPTER 4: THREADS (Lecture 4)
+            // ============================================================
+
+            // --- Page 10 ---
+            {
+                question: "What is a thread?",
+                options: ["A separate process", "A basic unit of CPU utilization", "An operating system", "A hardware component"],
+                answer: "A basic unit of CPU utilization",
+                page: 10,
+                lecture: "Chapter 4: Threads"
+            },
+            {
+                question: "A thread comprises of:",
+                options: ["Thread ID, program counter, register set, and stack", "Only a program counter", "Only memory space", "Only code section"],
+                answer: "Thread ID, program counter, register set, and stack",
+                page: 10,
+                lecture: "Chapter 4: Threads"
+            },
+            {
+                question: "Threads belonging to the same process share:",
+                options: ["Their own stack", "Their own register set", "Code section, data section, and OS resources", "Nothing at all"],
+                answer: "Code section, data section, and OS resources",
+                page: 10,
+                lecture: "Chapter 4: Threads"
+            },
+            {
+                question: "Which of the following do threads NOT share?",
+                options: ["Code section", "Data section", "Stack", "Open files"],
+                answer: "Stack",
+                page: 10,
+                lecture: "Chapter 4: Threads"
+            },
+            {
+                question: "What problem do threads solve in program execution?",
+                options: ["Memory allocation", "Seamless execution of multiple sections simultaneously", "Hardware failures", "Network connectivity"],
+                answer: "Seamless execution of multiple sections simultaneously",
+                page: 10,
+                lecture: "Chapter 4: Threads"
+            },
+            {
+                question: "In a web browser, threads can be used for:",
+                options: ["Displaying images while retrieving data from network", "Only displaying images", "Only retrieving network data", "Compiling code"],
+                answer: "Displaying images while retrieving data from network",
+                page: 10,
+                lecture: "Chapter 4: Threads"
+            },
+
+            // --- Page 11 ---
+            {
+                question: "In a word processor, threads can handle:",
+                options: ["Only displaying graphics", "Only spell checking", "Displaying graphics, responding to keystrokes, and spell checking", "Only saving files"],
+                answer: "Displaying graphics, responding to keystrokes, and spell checking",
+                page: 11,
+                lecture: "Chapter 4: Threads"
+            },
+            {
+                question: "Modern operating system kernels are:",
+                options: ["Single-threaded", "Multithreaded", "Thread-free", "Process-only"],
+                answer: "Multithreaded",
+                page: 11,
+                lecture: "Chapter 4: Threads"
+            },
+            {
+                question: "Kernel threads perform tasks such as:",
+                options: ["Managing devices, memory, and interrupt handling", "Only user interface display", "Only file editing", "Only network browsing"],
+                answer: "Managing devices, memory, and interrupt handling",
+                page: 11,
+                lecture: "Chapter 4: Threads"
+            },
+            {
+                question: "On a single-core system, multithreading provides:",
+                options: ["True parallelism", "Concurrent execution", "No benefit", "Hardware upgrade"],
+                answer: "Concurrent execution",
+                page: 11,
+                lecture: "Chapter 4: Threads"
+            },
+            {
+                question: "On a multi-core system, multithreading provides:",
+                options: ["Only concurrent execution", "True parallelism", "No advantage", "Slower execution"],
+                answer: "True parallelism",
+                page: 11,
+                lecture: "Chapter 4: Threads"
+            },
+            {
+                question: "User threads are:",
+                options: ["Supported above the kernel without kernel support", "Managed directly by the operating system", "Not supported in modern systems", "The same as kernel threads"],
+                answer: "Supported above the kernel without kernel support",
+                page: 11,
+                lecture: "Chapter 4: Threads"
+            },
+            {
+                question: "Kernel threads are:",
+                options: ["Managed without kernel support", "Supported and managed directly by the operating system", "Not used in modern systems", "Only for user applications"],
+                answer: "Supported and managed directly by the operating system",
+                page: 11,
+                lecture: "Chapter 4: Threads"
+            },
+
+            // --- Page 12 ---
+            {
+                question: "How many common multithreading models exist?",
+                options: ["Two models", "Three models", "Four models", "Five models"],
+                answer: "Three models",
+                page: 12,
+                lecture: "Chapter 4: Threads"
+            },
+            {
+                question: "The One-to-One model maps:",
+                options: ["Multiple user threads to one kernel thread", "One user thread to multiple kernel threads", "Each user thread to a kernel thread", "No mapping between threads"],
+                answer: "Each user thread to a kernel thread",
+                page: 12,
+                lecture: "Chapter 4: Threads"
+            },
+            {
+                question: "The One-to-One model allows:",
+                options: ["Only single thread execution", "Multiple threads to run in parallel on multiprocessors", "No parallel execution", "Only sequential execution"],
+                answer: "Multiple threads to run in parallel on multiprocessors",
+                page: 12,
+                lecture: "Chapter 4: Threads"
+            },
+            {
+                question: "The main drawback of the One-to-One model is:",
+                options: ["Poor performance", "No parallelism", "Creating user thread requires creating corresponding kernel thread", "Cannot use multiprocessors"],
+                answer: "Creating user thread requires creating corresponding kernel thread",
+                page: 12,
+                lecture: "Chapter 4: Threads"
+            },
+            {
+                question: "Which operating systems implement the One-to-One model?",
+                options: ["Only Linux", "Only Windows", "Linux and Windows family", "None of the above"],
+                answer: "Linux and Windows family",
+                page: 12,
+                lecture: "Chapter 4: Threads"
+            },
+            {
+                question: "The Many-to-One model maps:",
+                options: ["One user thread to one kernel thread", "Many user threads to one kernel thread", "One user thread to many kernel threads", "Many user threads to many kernel threads"],
+                answer: "Many user threads to one kernel thread",
+                page: 12,
+                lecture: "Chapter 4: Threads"
+            },
+            {
+                question: "The Many-to-Many model allows:",
+                options: ["Only one-to-one mapping", "Many user threads to be mapped to many kernel threads", "No thread mapping", "Only single thread execution"],
+                answer: "Many user threads to be mapped to many kernel threads",
+                page: 12,
+                lecture: "Chapter 4: Threads"
+            },
+
+            // --- Page 13 ---
+            {
+                question: "In the Many-to-Many model, the operating system can:",
+                options: ["Create only one kernel thread", "Create a sufficient number of kernel threads", "Not create any kernel threads", "Only use user threads"],
+                answer: "Create a sufficient number of kernel threads",
+                page: 13,
+                lecture: "Chapter 4: Threads"
+            },
+            {
+                question: "The Two-level model is similar to:",
+                options: ["One-to-One model", "Many-to-One model", "Many-to-Many model", "No other model"],
+                answer: "Many-to-Many model",
+                page: 13,
+                lecture: "Chapter 4: Threads"
+            },
+            {
+                question: "The Two-level model allows:",
+                options: ["No thread binding", "A user thread to be bound to a kernel thread", "Only many-to-one mapping", "Only one-to-one mapping"],
+                answer: "A user thread to be bound to a kernel thread",
+                page: 13,
+                lecture: "Chapter 4: Threads"
+            },
+            {
+                question: "Responsiveness as a benefit of threads means:",
+                options: ["Faster CPU speed", "May allow continued execution if part of process is blocked", "More memory available", "Better network connection"],
+                answer: "May allow continued execution if part of process is blocked",
+                page: 13,
+                lecture: "Chapter 4: Threads"
+            },
+            {
+                question: "Resource sharing benefit of threads means:",
+                options: ["Threads have separate memory spaces", "Threads share resources of process", "Threads cannot share anything", "Threads need message passing only"],
+                answer: "Threads share resources of process",
+                page: 13,
+                lecture: "Chapter 4: Threads"
+            },
+            {
+                question: "Economy benefit of threads refers to:",
+                options: ["Threads are more expensive than processes", "Thread creation and switching is cheaper than process operations", "Threads use more memory", "Threads are slower"],
+                answer: "Thread creation and switching is cheaper than process operations",
+                page: 13,
+                lecture: "Chapter 4: Threads"
+            },
+            {
+                question: "Scalability benefit of threads means:",
+                options: ["Process cannot use multiple processors", "Process can take advantage of multiprocessor architectures", "Only single processor can be used", "Threads slow down execution"],
+                answer: "Process can take advantage of multiprocessor architectures",
+                page: 13,
+                lecture: "Chapter 4: Threads"
+            },
+
+            // --- Page 14 ---
+            {
+                question: "A thread library provides:",
+                options: ["Hardware drivers", "API for creating and managing threads", "Operating system kernel", "Network protocols"],
+                answer: "API for creating and managing threads",
+                page: 14,
+                lecture: "Chapter 4: Threads"
+            },
+            {
+                question: "How many main thread libraries are commonly used today?",
+                options: ["One", "Two", "Three", "Four"],
+                answer: "Three",
+                page: 14,
+                lecture: "Chapter 4: Threads"
+            },
+            {
+                question: "Which is NOT one of the three main thread libraries?",
+                options: ["POSIX Pthreads", "Windows threads", "Java threads", "Linux System threads"],
+                answer: "Linux System threads",
+                page: 14,
+                lecture: "Chapter 4: Threads"
+            },
+            {
+                question: "A thread shares its stack with other threads in the same process.",
+                options: ["TRUE", "FALSE"],
+                answer: "FALSE",
+                page: 14,
+                lecture: "Chapter 4: Threads"
+            },
+            {
+                question: "Threads allow seamless execution of multiple sections of a program simultaneously.",
+                options: ["TRUE", "FALSE"],
+                answer: "TRUE",
+                page: 14,
+                lecture: "Chapter 4: Threads"
+            },
+            {
+                question: "Most modern software applications are multithreaded.",
+                options: ["TRUE", "FALSE"],
+                answer: "TRUE",
+                page: 14,
+                lecture: "Chapter 4: Threads"
+            },
+            {
+                question: "A web browser can use one thread for display and another for network retrieval.",
+                options: ["TRUE", "FALSE"],
+                answer: "TRUE",
+                page: 14,
+                lecture: "Chapter 4: Threads"
+            },
+            {
+                question: "Modern operating system kernels are single-threaded.",
+                options: ["TRUE", "FALSE"],
+                answer: "FALSE",
+                page: 14,
+                lecture: "Chapter 4: Threads"
+            },
+
+            // --- Page 15 ---
+            {
+                question: "Multithreading on a single-core system provides true parallelism.",
+                options: ["TRUE", "FALSE"],
+                answer: "FALSE",
+                page: 15,
+                lecture: "Chapter 4: Threads"
+            },
+            {
+                question: "User threads are managed directly by the operating system kernel.",
+                options: ["TRUE", "FALSE"],
+                answer: "FALSE",
+                page: 15,
+                lecture: "Chapter 4: Threads"
+            },
+            {
+                question: "Kernel threads are supported and managed by the operating system.",
+                options: ["TRUE", "FALSE"],
+                answer: "TRUE",
+                page: 15,
+                lecture: "Chapter 4: Threads"
+            },
+            {
+                question: "The One-to-One model maps each user thread to a kernel thread.",
+                options: ["TRUE", "FALSE"],
+                answer: "TRUE",
+                page: 15,
+                lecture: "Chapter 4: Threads"
+            },
+            {
+                question: "Linux implements the Many-to-One threading model.",
+                options: ["TRUE", "FALSE"],
+                answer: "FALSE",
+                page: 15,
+                lecture: "Chapter 4: Threads"
+            },
+            {
+                question: "The main drawback of the One-to-One model is the overhead of creating kernel threads.",
+                options: ["TRUE", "FALSE"],
+                answer: "TRUE",
+                page: 15,
+                lecture: "Chapter 4: Threads"
+            },
+            {
+                question: "The Many-to-Many model allows the developer to create as many user threads as needed.",
+                options: ["TRUE", "FALSE"],
+                answer: "TRUE",
+                page: 15,
+                lecture: "Chapter 4: Threads"
+            },
+            {
+                question: "The Two-level model is identical to the One-to-One model.",
+                options: ["TRUE", "FALSE"],
+                answer: "FALSE",
+                page: 15,
+                lecture: "Chapter 4: Threads"
+            },
+            {
+                question: "Thread switching has lower overhead than process context switching.",
+                options: ["TRUE", "FALSE"],
+                answer: "TRUE",
+                page: 15,
+                lecture: "Chapter 4: Threads"
+            },
+            {
+                question: "Threads are more expensive to create than processes.",
+                options: ["TRUE", "FALSE"],
+                answer: "FALSE",
+                page: 15,
+                lecture: "Chapter 4: Threads"
+            },
+
+            // ============================================================
+            // LINUX COMMANDS
+            // ============================================================
+
+            // --- Page 18 ---
+            {
+                question: "What does the pwd command do?",
+                options: ["Print working directory", "Password", "Power down", "Print word document"],
+                answer: "Print working directory",
+                page: 18,
+                lecture: "Linux Commands"
+            },
+            {
+                question: "Which command lists all files including hidden files?",
+                options: ["ls", "ls -a", "ls -l", "ls -h"],
+                answer: "ls -a",
+                page: 18,
+                lecture: "Linux Commands"
+            },
+            {
+                question: "What does ls -s display?",
+                options: ["File sizes in blocks", "Hidden files", "Sorted files", "System files"],
+                answer: "File sizes in blocks",
+                page: 18,
+                lecture: "Linux Commands"
+            },
+            {
+                question: "Which command shows file sizes in human-readable format?",
+                options: ["ls -s", "ls -h", "ls -sh", "ls -a"],
+                answer: "ls -sh",
+                page: 18,
+                lecture: "Linux Commands"
+            },
+            {
+                question: "What does cd ~ do?",
+                options: ["Change to home directory", "Change to root directory", "Change to previous directory", "Create directory"],
+                answer: "Change to home directory",
+                page: 18,
+                lecture: "Linux Commands"
+            },
+
+            // --- Page 19 ---
+            {
+                question: "What does cd .. do?",
+                options: ["Move up one directory level", "Move to home directory", "List directories", "Create directory"],
+                answer: "Move up one directory level",
+                page: 19,
+                lecture: "Linux Commands"
+            },
+            {
+                question: "Which command is used to change directories?",
+                options: ["mkdir", "cd", "pwd", "ls"],
+                answer: "cd",
+                page: 19,
+                lecture: "Linux Commands"
+            },
+            {
+                question: "How do you navigate to your home directory?",
+                options: ["cd /", "cd ~", "cd home", "Both a and b"],
+                answer: "cd ~",
+                page: 19,
+                lecture: "Linux Commands"
+            },
+            {
+                question: "What does the mkdir command do?",
+                options: ["Make file", "Make directory", "Move directory", "Modify directory"],
+                answer: "Make directory",
+                page: 19,
+                lecture: "Linux Commands"
+            },
+            {
+                question: "Which command creates an empty file?",
+                options: ["create", "new", "touch", "makefile"],
+                answer: "touch",
+                page: 19,
+                lecture: "Linux Commands"
+            },
+
+            // --- Page 20 ---
+            {
+                question: "What does touch filename.txt do?",
+                options: ["Deletes the file", "Creates an empty file or updates timestamp", "Opens the file", "Copies the file"],
+                answer: "Creates an empty file or updates timestamp",
+                page: 20,
+                lecture: "Linux Commands"
+            },
+            {
+                question: "What does the echo command do?",
+                options: ["Repeat sound", "Display text on terminal", "Delete files", "Edit files"],
+                answer: "Display text on terminal",
+                page: 20,
+                lecture: "Linux Commands"
+            },
+            {
+                question: "What does echo 'text' > file.txt do?",
+                options: ["Appends text to file", "Displays text", "Writes text to file (overwrites existing content)", "Deletes the file"],
+                answer: "Writes text to file (overwrites existing content)",
+                page: 20,
+                lecture: "Linux Commands"
+            },
+            {
+                question: "Which symbol is used for output redirection?",
+                options: ["<", ">", "|", "&"],
+                answer: ">",
+                page: 20,
+                lecture: "Linux Commands"
+            },
+            {
+                question: "What does the cat command do?",
+                options: ["Concatenate and display file contents", "Create a file", "Delete a file", "Categorize files"],
+                answer: "Concatenate and display file contents",
+                page: 20,
+                lecture: "Linux Commands"
+            },
+
+            // --- Page 21 ---
+            {
+                question: "Which command would you use to view the contents of a text file?",
+                options: ["view", "cat", "see", "show"],
+                answer: "cat",
+                page: 21,
+                lecture: "Linux Commands"
+            },
+            {
+                question: "What does rmdir do?",
+                options: ["Remove file", "Remove empty directory", "Remove any directory", "Rename directory"],
+                answer: "Remove empty directory",
+                page: 21,
+                lecture: "Linux Commands"
+            },
+            {
+                question: "Which command removes files?",
+                options: ["delete", "remove", "rm", "del"],
+                answer: "rm",
+                page: 21,
+                lecture: "Linux Commands"
+            },
+            {
+                question: "What does rm -r do?",
+                options: ["Remove read-only files", "Remove directories recursively", "Remove recent files", "Restore files"],
+                answer: "Remove directories recursively",
+                page: 21,
+                lecture: "Linux Commands"
+            },
+            {
+                question: "What's the difference between rm and rmdir?",
+                options: ["No difference", "rm removes files, rmdir removes empty directories", "rm is faster", "rmdir is safer"],
+                answer: "rm removes files, rmdir removes empty directories",
+                page: 21,
+                lecture: "Linux Commands"
+            },
+
+            // --- Page 22 ---
+            {
+                question: "What does cp source destination do?",
+                options: ["Change permissions", "Copy file from source to destination", "Compare files", "Create path"],
+                answer: "Copy file from source to destination",
+                page: 22,
+                lecture: "Linux Commands"
+            },
+            {
+                question: "What does the -r flag do in cp -r?",
+                options: ["Remove files", "Copy recursively (including directories)", "Read-only copy", "Reverse copy"],
+                answer: "Copy recursively (including directories)",
+                page: 22,
+                lecture: "Linux Commands"
+            },
+            {
+                question: "Which command copies a directory and all its contents?",
+                options: ["cp", "cp -r", "copy", "cpdir"],
+                answer: "cp -r",
+                page: 22,
+                lecture: "Linux Commands"
+            },
+            {
+                question: "What does mv source destination do?",
+                options: ["Make virtual", "Move or rename files/directories", "Modify version", "Mount volume"],
+                answer: "Move or rename files/directories",
+                page: 22,
+                lecture: "Linux Commands"
+            },
+            {
+                question: "How do you rename a file in Linux?",
+                options: ["rename old new", "mv old_name new_name", "rn old new", "change old new"],
+                answer: "mv old_name new_name",
+                page: 22,
+                lecture: "Linux Commands"
+            },
+
+            // --- Page 23 ---
+            {
+                question: "What's the difference between cp and mv?",
+                options: ["No difference", "cp copies, mv moves (original is deleted)", "mv is faster", "cp is safer"],
+                answer: "cp copies, mv moves (original is deleted)",
+                page: 23,
+                lecture: "Linux Commands"
+            },
+            {
+                question: "What does --help do?",
+                options: ["Call technical support", "Display command help information", "Help other users", "Fix errors"],
+                answer: "Display command help information",
+                page: 23,
+                lecture: "Linux Commands"
+            },
+            {
+                question: "Which command displays the manual page for a command?",
+                options: ["help", "info", "man", "manual"],
+                answer: "man",
+                page: 23,
+                lecture: "Linux Commands"
+            },
+            {
+                question: "How would you get help for the ls command?",
+                options: ["ls --help", "man ls", "Both a and b", "help ls"],
+                answer: "Both a and b",
+                page: 23,
+                lecture: "Linux Commands"
+            },
+            {
+                question: "What does the date command do?",
+                options: ["Set system date", "Display current date and time", "Calculate dates", "Format dates"],
+                answer: "Display current date and time",
+                page: 23,
+                lecture: "Linux Commands"
+            },
+
+            // --- Page 24 ---
+            {
+                question: "What does the cal command display?",
+                options: ["Calculator", "Calendar", "Calibration", "Call log"],
+                answer: "Calendar",
+                page: 24,
+                lecture: "Linux Commands"
+            },
+            {
+                question: "What does the top command do?",
+                options: ["Move to top directory", "Display top files", "Display running processes and system resources", "Display top users"],
+                answer: "Display running processes and system resources",
+                page: 24,
+                lecture: "Linux Commands"
+            },
+            {
+                question: "What does ls -l display?",
+                options: ["Long listing format with detailed information", "List of links", "Latest files", "Linux files only"],
+                answer: "Long listing format with detailed information",
+                page: 24,
+                lecture: "Linux Commands"
+            },
+            {
+                question: "In ls -l output, what does the first character indicate?",
+                options: ["File size", "File type (- for file, d for directory)", "File owner", "File permissions"],
+                answer: "File type (- for file, d for directory)",
+                page: 24,
+                lecture: "Linux Commands"
+            },
+            {
+                question: "What does sudo apt install ncal do?",
+                options: ["Install the ncal package", "Remove ncal", "Update ncal", "Configure ncal"],
+                answer: "Install the ncal package",
+                page: 24,
+                lecture: "Linux Commands"
+            },
+
+            // --- Page 25 ---
+            {
+                question: "What does sudo apt remove ncal do?",
+                options: ["Install ncal", "Remove the ncal package", "Update ncal", "Repair ncal"],
+                answer: "Remove the ncal package",
+                page: 25,
+                lecture: "Linux Commands"
+            },
+            {
+                question: "What does sudo stand for?",
+                options: ["Super do", "Superuser do", "System undo", "Secure domain"],
+                answer: "Superuser do",
+                page: 25,
+                lecture: "Linux Commands"
+            },
+            {
+                question: "Which command sequence creates a directory and navigates into it?",
+                options: ["mkdir folder; cd folder", "cd folder; mkdir folder", "create folder; open folder", "make folder; enter folder"],
+                answer: "mkdir folder; cd folder",
+                page: 25,
+                lecture: "Linux Commands"
+            },
+            {
+                question: "How do you copy a file and rename it in one command?",
+                options: ["cp file1 file2", "mv file1 file2", "copy file1 to file2", "rename file1 file2"],
+                answer: "cp file1 file2",
+                page: 25,
+                lecture: "Linux Commands"
+            },
+            {
+                question: "Which command shows hidden files with detailed information?",
+                options: ["ls -a -l", "ls -al", "Both a and b", "ls -h"],
+                answer: "Both a and b",
+                page: 25,
+                lecture: "Linux Commands"
+            },
+
+            // --- Page 26 ---
+            {
+                question: "What happens if you use rm -r on a non-empty directory?",
+                options: ["Error message", "Removes directory and all contents", "Removes only empty subdirectories", "Nothing happens"],
+                answer: "Removes directory and all contents",
+                page: 26,
+                lecture: "Linux Commands"
+            },
+            {
+                question: "What's the purpose of the touch command on an existing file?",
+                options: ["Delete the file", "Update the file's timestamp", "Lock the file", "Copy the file"],
+                answer: "Update the file's timestamp",
+                page: 26,
+                lecture: "Linux Commands"
+            },
+            {
+                question: "What does echo 'Hello' >> file.txt do (note the >>)?",
+                options: ["Overwrites file with 'Hello'", "Appends 'Hello' to the end of file", "Displays 'Hello'", "Creates a new file"],
+                answer: "Appends 'Hello' to the end of file",
+                page: 26,
+                lecture: "Linux Commands"
+            },
+            {
+                question: "Which command would you use to see the current month's calendar?",
+                options: ["date", "cal", "calendar", "month"],
+                answer: "cal",
+                page: 26,
+                lecture: "Linux Commands"
+            },
+            {
+                question: "What information does ls -l NOT show?",
+                options: ["File permissions", "File size", "File contents", "Last modification time"],
+                answer: "File contents",
+                page: 26,
+                lecture: "Linux Commands"
+            },
+
+            // --- Page 27 ---
+            {
+                question: "Before removing a directory with rm -r, what should you do?",
+                options: ["Nothing", "Verify the path and contents", "Run it twice", "Use sudo"],
+                answer: "Verify the path and contents",
+                page: 27,
+                lecture: "Linux Commands"
+            },
+            {
+                question: "Which is safer for viewing file contents?",
+                options: ["cat (for small files)", "rm", "mv", "cp"],
+                answer: "cat (for small files)",
+                page: 27,
+                lecture: "Linux Commands"
+            },
+            {
+                question: "What does cd without any arguments do?",
+                options: ["Shows error", "Takes you to home directory", "Does nothing", "Lists directories"],
+                answer: "Takes you to home directory",
+                page: 27,
+                lecture: "Linux Commands"
+            },
+            {
+                question: "How can you cancel a command that's currently running (like top)?",
+                options: ["Close terminal", "Press Ctrl+C", "Type exit", "Restart computer"],
+                answer: "Press Ctrl+C",
+                page: 27,
+                lecture: "Linux Commands"
+            },
+            {
+                question: "Which command combination shows file sizes in human-readable format with hidden files?",
+                options: ["ls -sh -a", "ls -sha", "ls -ash", "All of the above"],
+                answer: "All of the above",
+                page: 27,
+                lecture: "Linux Commands"
+            }
+        ];
+
+        // AI Test Bank
+        // Course data file for Quiz Hub
+
+        window.AI_TEST_BANK_DATA = [
+            // ============================================================
+            // MULTIPLE CHOICE QUESTIONS
+            // ============================================================
+
+            // --- Page 1 ---
+            {
+                question: "A simple reflex agent makes decisions based on:",
+                options: ["Past experiences and learning", "The current percept only", "A model of the environment", "Future goal states"],
+                answer: "The current percept only",
+                explanation: "Simple reflex agents act only on the basis of the current percept, ignoring the rest of the percept history.",
+                page: 1,
+                lecture: "Lecture 2: Intelligent Agents"
+            },
+            {
+                question: "Greedy Best-First Search selects nodes based on:",
+                options: ["Path cost g(n)", "Heuristic value h(n)", "g(n)+h(n)", "Node depth"],
+                answer: "Heuristic value h(n)",
+                explanation: "Greedy Best-First search expands the node that is closest to the goal (lowest h(n)).",
+                page: 1,
+                lecture: "Lecture 6: Informed Search"
+            },
+            {
+                question: "In A* search, what does f(n) represent?",
+                options: ["Exact remaining cost from n to goal", "Estimated total cost of a solution path", "Number of nodes expanded so far", "Depth of node n"],
+                answer: "Estimated total cost of a solution path",
+                explanation: "f(n) = g(n) + h(n), representing the estimated cost of the cheapest solution through node n.",
+                page: 1,
+                lecture: "Lecture 6: Informed Search"
+            },
+            {
+                question: "The PEAS description of an AI agent includes:",
+                options: ["Performance, Environment, Actions, Sensors", "Prediction, Efficiency, Accuracy, Speed", "Perceiving, Environment, Actuators, Sensors", "Performance, Environment, Actuators, Sensors"],
+                answer: "Performance, Environment, Actuators, Sensors",
+                explanation: "PEAS stands for Performance, Environment, Actuators, and Sensors.",
+                page: 1,
+                lecture: "Lecture 2: Intelligent Agents"
+            },
+            {
+                question: "Which property must a heuristic h(n) satisfy to be admissible for A* search?",
+                options: ["h(n) never overestimates the true cost to a goal", "h(n) is always zero", "h(n) is always greater than the true cost", "h(n) equals the path cost so far g(n)"],
+                answer: "h(n) never overestimates the true cost to a goal",
+                explanation: "An admissible heuristic never overestimates the cost to reach the goal.",
+                page: 1,
+                lecture: "Lecture 6: Informed Search"
+            },
+
+            // --- Page 2 ---
+            {
+                question: "What does problem formulation involve?",
+                options: ["Writing the algorithm", "Describing states, actions, goals, and costs", "Choosing the search strategy", "Evaluating heuristics"],
+                answer: "Describing states, actions, goals, and costs",
+                explanation: "Problem formulation is the process of deciding what actions and states to consider, given a goal.",
+                page: 2,
+                lecture: "Lecture 3: Problem Solving Agent"
+            },
+            {
+                question: "Breadth-First Search (BFS) is guaranteed to find an optimal solution when:",
+                options: ["The graph is weighted", "The heuristic is admissible", "All step costs are equal", "The depth is infinite"],
+                answer: "All step costs are equal",
+                explanation: "BFS is optimal if path cost is a non-decreasing function of the depth of the node (e.g., all step costs are equal).",
+                page: 2,
+                lecture: "Lecture 4: Uninformed Search"
+            },
+            {
+                question: "Which evaluation criterion checks whether an algorithm will find a solution if one exists?",
+                options: ["Time complexity", "Optimality", "Completeness", "Space complexity"],
+                answer: "Completeness",
+                explanation: "Completeness is the guarantee that the algorithm will find a solution when there is one.",
+                page: 2,
+                lecture: "Lecture 3: Problem Solving Agent"
+            },
+            {
+                question: "In A*, if h(n)=0 for all nodes, A* behaves like:",
+                options: ["Uniform-Cost Search", "Greedy Best-First Search", "Depth-First Search", "Random Search"],
+                answer: "Uniform-Cost Search",
+                explanation: "If h(n)=0, then f(n)=g(n), which is exactly Uniform-Cost Search.",
+                page: 2,
+                lecture: "Lecture 6: Informed Search"
+            },
+            {
+                question: "Depth-First Search (DFS) typically uses which data structure?",
+                options: ["Queue (FIFO)", "Priority queue", "Hash table", "Stack (LIFO)"],
+                answer: "Stack (LIFO)",
+                explanation: "DFS expands the deepest node first, which corresponds to a LIFO (Last-In, First-Out) stack.",
+                page: 2,
+                lecture: "Lecture 4: Uninformed Search"
+            },
+            {
+                question: "Which of the following is not an evaluation criterion for search strategies?",
+                options: ["Completeness", "Heuristic accuracy", "Optimality", "Time and space complexity"],
+                answer: "Heuristic accuracy",
+                explanation: "The four standard criteria are completeness, optimality, time complexity, and space complexity.",
+                page: 2,
+                lecture: "Lecture 3: Problem Solving Agent"
+            },
+
+            // --- Page 3 ---
+            {
+                question: "Bidirectional search works by:",
+                options: ["Searching backward only", "Searching forward only", "Random exploration", "Searching from start and goal until they meet"],
+                answer: "Searching from start and goal until they meet",
+                explanation: "Bidirectional search runs two simultaneous searches: one forward from the initial state and one backward from the goal.",
+                page: 3,
+                lecture: "Lecture 5: Uninformed Search 2"
+            },
+            {
+                question: "An AI agent is best described as a system that:",
+                options: ["Acts randomly in its environment", "Stores data without taking actions", "Uses sensors and actuators to achieve goals", "Applies logical rules only"],
+                answer: "Uses sensors and actuators to achieve goals",
+                explanation: "An agent perceives its environment through sensors and acts upon it through actuators.",
+                page: 3,
+                lecture: "Lecture 2: Intelligent Agents"
+            },
+            {
+                question: "Which uninformed search algorithm is most likely to run out of memory in large search spaces?",
+                options: ["DFS", "BFS", "IDS", "DLS"],
+                answer: "BFS",
+                explanation: "BFS keeps all expanded nodes in memory, leading to exponential space complexity.",
+                page: 3,
+                lecture: "Lecture 4: Uninformed Search"
+            },
+            {
+                question: "The goal test in problem formulation is used to:",
+                options: ["Define the state", "Determine if the current state is a goal state", "Assign heuristic values", "Expand the search tree"],
+                answer: "Determine if the current state is a goal state",
+                explanation: "The goal test determines whether a given state is a goal state.",
+                page: 3,
+                lecture: "Lecture 3: Problem Solving Agent"
+            },
+            {
+                question: "Which search algorithm prunes less promising paths while focusing on optimal routes?",
+                options: ["RBFS", "IDA*", "Hill climbing", "SMA*"],
+                answer: "RBFS",
+                explanation: "Recursive Best-First Search (RBFS) mimics standard best-first search but uses linear space.",
+                page: 3,
+                lecture: "Lecture 7: Memory Bounded Search"
+            },
+            {
+                question: "Which of the following are optimization search algorithms?",
+                options: ["Simulated Annealing", "Genetic Algorithm", "Hill Climbing", "All of them"],
+                answer: "All of them",
+                explanation: "All listed options are local search algorithms used for optimization problems.",
+                page: 3,
+                lecture: "Lecture 8: Local Search"
+            },
+
+            // --- Page 4 ---
+            {
+                question: "The Turing Test is mainly associated with which AI approach?",
+                options: ["Acting humanly", "Acting rationally", "Thinking humanly", "Thinking rationally"],
+                answer: "Acting humanly",
+                explanation: "The Turing Test proposes a definition of intelligence based on the ability to act indistinguishably from a human.",
+                page: 4,
+                lecture: "Lecture 1: Introduction"
+            },
+            {
+                question: "What is the key difference between DFS and BFS?",
+                options: ["DFS uses a queue, BFS uses a stack", "DFS uses a stack, BFS uses a queue", "DFS is informed, BFS is uninformed", "DFS is optimal, BFS is not"],
+                answer: "DFS uses a stack, BFS uses a queue",
+                explanation: "DFS uses LIFO (Stack), while BFS uses FIFO (Queue) for the frontier.",
+                page: 4,
+                lecture: "Lecture 4: Uninformed Search"
+            },
+            {
+                question: "A heuristic is consistent if:",
+                options: ["h(n)=0 for all nodes", "h(n) <= c(n,n') + h(n')", "h(n) >= c(n,n') + h(n')", "h(n)=g(n)"],
+                answer: "h(n) <= c(n,n') + h(n')",
+                explanation: "Consistency requires that the heuristic estimate to the goal from n is no greater than the step cost to n' plus the estimated cost from n'.",
+                page: 4,
+                lecture: "Lecture 6: Informed Search"
+            },
+            {
+                question: "Which component of an AI agent is responsible for perceiving the environment?",
+                options: ["Actuator", "Sensor", "Environment", "Performance measure"],
+                answer: "Sensor",
+                explanation: "Sensors are the devices through which an agent perceives its environment.",
+                page: 4,
+                lecture: "Lecture 2: Intelligent Agents"
+            },
+            {
+                question: "Which search strategy expands the shallowest unexpanded node first?",
+                options: ["DFS", "BFS", "Greedy search", "Hill climbing"],
+                answer: "BFS",
+                explanation: "Breadth-First Search always expands the shallowest unexpanded node.",
+                page: 4,
+                lecture: "Lecture 4: Uninformed Search"
+            },
+
+            // --- Page 5 ---
+            {
+                question: "Which algorithm combines the advantages of BFS and DFS while limiting memory usage?",
+                options: ["BFS", "DFS", "Iterative Deepening Search (IDS)", "Uniform-Cost Search"],
+                answer: "Iterative Deepening Search (IDS)",
+                explanation: "IDS has the completeness and optimality of BFS but the linear space complexity of DFS.",
+                page: 5,
+                lecture: "Lecture 5: Uninformed Search 2"
+            },
+            {
+                question: "In uninformed search, the algorithm:",
+                options: ["Uses domain-specific knowledge", "Uses heuristics", "Has no additional problem-specific information", "Always finds the optimal solution"],
+                answer: "Has no additional problem-specific information",
+                explanation: "Uninformed search strategies have no additional information about states beyond the problem definition.",
+                page: 5,
+                lecture: "Lecture 4: Uninformed Search"
+            },
+            {
+                question: "Which search algorithm uses both path cost and heuristic information?",
+                options: ["BFS", "DFS", "A*", "DLS"],
+                answer: "A*",
+                explanation: "A* uses the evaluation function f(n) = g(n) + h(n).",
+                page: 5,
+                lecture: "Lecture 6: Informed Search"
+            },
+            {
+                question: "Which type of agent maintains an internal model of the environment?",
+                options: ["Simple reflex agent", "Model-based reflex agent", "Random agent", "Utility-based agent"],
+                answer: "Model-based reflex agent",
+                explanation: "Model-based agents maintain an internal state to track aspects of the world that are not currently evident.",
+                page: 5,
+                lecture: "Lecture 2: Intelligent Agents"
+            },
+            {
+                question: "Which algorithm is most suitable for problems with very large or infinite state spaces and limited memory?",
+                options: ["BFS", "DFS", "IDA*", "Uniform-Cost Search"],
+                answer: "IDA*",
+                explanation: "IDA* (Iterative Deepening A*) is memory efficient (linear space) and optimal.",
+                page: 5,
+                lecture: "Lecture 7: Memory Bounded Search"
+            },
+            {
+                question: "What happens if a heuristic overestimates the true cost to the goal in A*?",
+                options: ["A* becomes faster but still optimal", "A* may fail to find the optimal solution", "A* becomes identical to BFS", "A* becomes complete but not optimal"],
+                answer: "A* may fail to find the optimal solution",
+                explanation: "If h(n) overestimates the cost (is inadmissible), A* is not guaranteed to find the optimal solution.",
+                page: 5,
+                lecture: "Lecture 6: Informed Search"
+            },
+
+            // --- Page 6 ---
+            {
+                question: "Which performance measure evaluates how good the solution is compared to others?",
+                options: ["Completeness", "Time complexity", "Optimality", "Space complexity"],
+                answer: "Optimality",
+                explanation: "Optimality is the ability of the algorithm to find the highest quality solution (lowest cost).",
+                page: 6,
+                lecture: "Lecture 3: Problem Solving Agent"
+            },
+            {
+                question: "Which agent type selects actions to maximize expected performance?",
+                options: ["Simple reflex agent", "Model-based agent", "Goal-based agent", "Utility-based agent"],
+                answer: "Utility-based agent",
+                explanation: "Utility-based agents allow a comparison of different world states according to exactly how 'happy' they would make the agent.",
+                page: 6,
+                lecture: "Lecture 2: Intelligent Agents"
+            },
+
+            // ============================================================
+            // TRUE / FALSE QUESTIONS
+            // ============================================================
+
+            // --- Page 7 ---
+            {
+                question: "The primary advantage of informed search algorithms over uninformed search is the use of heuristics to guide the search.",
+                options: ["True", "False"],
+                answer: "True",
+                explanation: "Informed search uses problem-specific knowledge (heuristics) to find solutions more efficiently.",
+                page: 7,
+                lecture: "Lecture 6: Informed Search"
+            },
+            {
+                question: "In informed search, the heuristic represents the cost from the initial state to the current node.",
+                options: ["True", "False"],
+                answer: "False",
+                explanation: "The heuristic h(n) estimates the cost from the current node to the *goal*, not from the start.",
+                page: 7,
+                lecture: "Lecture 6: Informed Search"
+            },
+            {
+                question: "Breadth-First Search (BFS) is equivalent to Uniform-Cost Search when all step costs are equal to 1.",
+                options: ["True", "False"],
+                answer: "True",
+                explanation: "When step costs are equal, the 'lowest cost' path is simply the shallowest path, which BFS finds.",
+                page: 7,
+                lecture: "Lecture 4: Uninformed Search"
+            },
+            {
+                question: "Iterative Deepening Search combines the completeness of BFS with the low memory usage of DFS.",
+                options: ["True", "False"],
+                answer: "True",
+                explanation: "IDS is complete and optimal like BFS, but has the linear space complexity of DFS.",
+                page: 7,
+                lecture: "Lecture 5: Uninformed Search 2"
+            },
+            {
+                question: "The Traveling Salesman Problem is best solved using Hill Climbing.",
+                options: ["True", "False"],
+                answer: "False",
+                explanation: "Hill climbing often gets stuck in local maxima; algorithms like Genetic Algorithms or Simulated Annealing are better suited.",
+                page: 7,
+                lecture: "Lecture 8: Local Search"
+            },
+            {
+                question: "In Hill Climbing, the search stops when the global maximum is reached.",
+                options: ["True", "False"],
+                answer: "False",
+                explanation: "It stops when a local maximum is reached, which may or may not be the global maximum.",
+                page: 7,
+                lecture: "Lecture 8: Local Search"
+            },
+            {
+                question: "Simulated Annealing can accept worse solutions with a certain probability to avoid local maxima.",
+                options: ["True", "False"],
+                answer: "True",
+                explanation: "This allows the algorithm to escape local maxima.",
+                page: 7,
+                lecture: "Lecture 8: Local Search"
+            },
+            {
+                question: "An online search algorithm can discover successors only for the state that it physically occupies.",
+                options: ["True", "False"],
+                answer: "True",
+                explanation: "Online search agents must physically be in a state to perceive its successors.",
+                page: 7,
+                lecture: "Lecture 10: Online Search"
+            },
+            {
+                question: "Optimization search algorithms start with an initial solution and iteratively try to improve it.",
+                options: ["True", "False"],
+                answer: "True",
+                explanation: "This describes local search algorithms like Hill Climbing and Simulated Annealing.",
+                page: 7,
+                lecture: "Lecture 8: Local Search"
+            },
+            {
+                question: "In online search, the agent plans first and then acts, while in offline search it acts first and then plans.",
+                options: ["True", "False"],
+                answer: "False",
+                explanation: "Offline search plans first then acts. Online search interleaves planning and acting.",
+                page: 7,
+                lecture: "Lecture 10: Online Search"
+            },
+            {
+                question: "Uniformed search algorithms use problem-specific knowledge to guide node expansion.",
+                options: ["True", "False"],
+                answer: "False",
+                explanation: "Uninformed (blind) search does not use problem-specific knowledge.",
+                page: 7,
+                lecture: "Lecture 4: Uninformed Search"
+            },
+            {
+                question: "A heuristic function estimates the cost from the current node to the goal state.",
+                options: ["True", "False"],
+                answer: "True",
+                explanation: "This is the definition of h(n).",
+                page: 7,
+                lecture: "Lecture 6: Informed Search"
+            },
+            {
+                question: "A* search is optimal if the heuristic used is admissible.",
+                options: ["True", "False"],
+                answer: "True",
+                explanation: "For tree search, admissibility is sufficient for optimality.",
+                page: 7,
+                lecture: "Lecture 6: Informed Search"
+            },
+            {
+                question: "Depth-First Search always finds the optimal solution if one exists.",
+                options: ["True", "False"],
+                answer: "False",
+                explanation: "DFS is not optimal; it returns the first solution it finds, which may be a long path.",
+                page: 7,
+                lecture: "Lecture 4: Uninformed Search"
+            },
+            {
+                question: "Local search algorithms typically keep only one current state in memory.",
+                options: ["True", "False"],
+                answer: "True",
+                explanation: "Algorithms like Hill Climbing operate on a single current state (though some variants keep a few).",
+                page: 7,
+                lecture: "Lecture 8: Local Search"
+            },
+            {
+                question: "Genetic Algorithms operate on a population of candidate solutions rather than a single solution.",
+                options: ["True", "False"],
+                answer: "True",
+                explanation: "GAs use a population of strings (chromosomes).",
+                page: 7,
+                lecture: "Lecture 9: Genetic Algorithms"
+            },
+            {
+                question: "Hill Climbing is guaranteed to find the global optimum if the search space is finite.",
+                options: ["True", "False"],
+                answer: "False",
+                explanation: "Even in finite spaces, it can get stuck in local optima, ridges, or plateaus.",
+                page: 7,
+                lecture: "Lecture 8: Local Search"
+            },
+            {
+                question: "In online search, the agent has complete knowledge of the environment before acting.",
+                options: ["True", "False"],
+                answer: "False",
+                explanation: "Online search agents operate in unknown environments and learn as they go.",
+                page: 7,
+                lecture: "Lecture 10: Online Search"
+            },
+            {
+                question: "Simulated Annealing gradually reduces randomness in decision-making as the search progresses.",
+                options: ["True", "False"],
+                answer: "True",
+                explanation: "The 'temperature' parameter decreases over time, reducing the probability of accepting worse moves.",
+                page: 7,
+                lecture: "Lecture 8: Local Search"
+            }
+        ];
+
+    </script>
+
+    <script>
+        // ============================================================
+        // DATA MANAGEMENT
+        // ============================================================
+
+        const STORAGE_KEY = 'quiz_hub_data';
+        const THEME_KEY = 'quiz_hub_theme';
+
+        // Pre-cache question counts from loaded course files
+        if (window.OS_CH1_2_DATA) localStorage.setItem('quiz_os_ch1_2_count', window.OS_CH1_2_DATA.length);
+        if (window.OS_CH3_4_DATA) localStorage.setItem('quiz_os_ch3_4_count', window.OS_CH3_4_DATA.length);
+        if (window.AI_TEST_BANK_DATA) localStorage.setItem('quiz_ai_test_bank_count', window.AI_TEST_BANK_DATA.length);
+
+        // Default courses with existing data files
+        const DEFAULT_COURSES = [
+            {
+                id: 'os',
+                name: 'Operating Systems',
+                quizzes: [
+                    { id: 'os_ch1_2', name: 'Ch 1-2: Introduction & Structures', file: 'courses/os_ch1_2.js', questionCount: window.OS_CH1_2_DATA ? window.OS_CH1_2_DATA.length : 87 },
+                    { id: 'os_ch3_4', name: 'Ch 3-4: Processes & Threads', file: 'courses/os_ch3_4.js', questionCount: window.OS_CH3_4_DATA ? window.OS_CH3_4_DATA.length : 89 }
+                ]
+            },
+            {
+                id: 'ai',
+                name: 'Artificial Intelligence',
+                quizzes: [
+                    { id: 'ai_test_bank', name: 'AI Test Bank', file: 'courses/ai_test_bank.js', questionCount: window.AI_TEST_BANK_DATA ? window.AI_TEST_BANK_DATA.length : 49 }
+                ]
+            }
+        ];
+
+        function getData() {
+            const stored = localStorage.getItem(STORAGE_KEY);
+            if (stored) {
+                return JSON.parse(stored);
+            }
+            // Initialize with default courses
+            const data = { courses: DEFAULT_COURSES };
+            saveData(data);
+            return data;
+        }
+
+        function saveData(data) {
+            localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
+        }
+
+        function generateId() {
+            return 'id_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
+        }
+
+        // ============================================================
+        // THEME
+        // ============================================================
+
+        function getTheme() {
+            return localStorage.getItem(THEME_KEY) || 'dark';
+        }
+
+        function applyTheme(theme) {
+            if (theme === 'light') {
+                document.body.classList.add('light-mode');
+                document.getElementById('theme-btn').textContent = 'Dark';
+            } else {
+                document.body.classList.remove('light-mode');
+                document.getElementById('theme-btn').textContent = 'Light';
+            }
+        }
+
+        function toggleTheme() {
+            const current = getTheme();
+            const next = current === 'dark' ? 'light' : 'dark';
+            localStorage.setItem(THEME_KEY, next);
+            applyTheme(next);
+        }
+
+        // ============================================================
+        // PROGRESS & STATS
+        // ============================================================
+
+        function getQuizProgress(quizId) {
+            const state = localStorage.getItem(`quiz_${quizId}_state`);
+            if (!state) return { answered: 0, correct: 0 };
+            const parsed = JSON.parse(state);
+            const answers = parsed.answers || {};
+            const answered = Object.keys(answers).length;
+            const correct = Object.values(answers).filter(a => a.isCorrect).length;
+            return { answered, correct };
+        }
+
+        function getQuizQuestionCount(quizId) {
+            // Check localStorage cache
+            const cached = localStorage.getItem(`quiz_${quizId}_count`);
+            if (cached) return parseInt(cached);
+
+            // Check inline data or questionCount property
+            const data = getData();
+            for (const course of data.courses) {
+                const quiz = course.quizzes.find(q => q.id === quizId);
+                if (quiz) {
+                    if (quiz.questions) return quiz.questions.length;
+                    if (quiz.questionCount) return quiz.questionCount;
+                }
+            }
+            return 0;
+        }
+
+        function calculateOverallStats() {
+            const data = getData();
+            let totalQuizzes = 0;
+            let totalQuestions = 0;
+            let totalAnswered = 0;
+            let totalCorrect = 0;
+
+            for (const course of data.courses) {
+                for (const quiz of course.quizzes) {
+                    totalQuizzes++;
+                    const count = getQuizQuestionCount(quiz.id);
+                    totalQuestions += count;
+                    const progress = getQuizProgress(quiz.id);
+                    totalAnswered += progress.answered;
+                    totalCorrect += progress.correct;
+                }
+            }
+
+            return {
+                courses: data.courses.length,
+                quizzes: totalQuizzes,
+                questions: totalQuestions,
+                answered: totalAnswered,
+                accuracy: totalAnswered === 0 ? 0 : Math.round((totalCorrect / totalAnswered) * 100)
+            };
+        }
+
+        // ============================================================
+        // RENDERING
+        // ============================================================
+
+        function renderStats() {
+            const stats = calculateOverallStats();
+            document.getElementById('stats-overview').innerHTML = `
+                <div class="stat-card">
+                    <div class="stat-value">${stats.courses}</div>
+                    <div class="stat-label">Courses</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-value">${stats.quizzes}</div>
+                    <div class="stat-label">Quizzes</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-value">${stats.answered}</div>
+                    <div class="stat-label">Answered</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-value" style="color: ${stats.accuracy >= 70 ? 'var(--success)' : stats.accuracy > 0 ? 'var(--error)' : 'inherit'}">${stats.accuracy}%</div>
+                    <div class="stat-label">Accuracy</div>
+                </div>
+            `;
+        }
+
+        function renderCourses() {
+            const data = getData();
+            const container = document.getElementById('courses-container');
+
+            if (data.courses.length === 0) {
+                container.innerHTML = `
+                    <div class="empty-state">
+                        <h3>No courses yet</h3>
+                        <p>Click "+ New Course" to create your first course folder.</p>
+                    </div>
+                `;
+                return;
+            }
+
+            container.innerHTML = data.courses.map(course => {
+                const courseStats = calculateCourseStats(course);
+                return `
+                    <div class="course-folder" id="folder-${course.id}">
+                        <div class="folder-header" onclick="toggleFolder('${course.id}')">
+                            <div class="folder-info">
+                                <div class="folder-icon">▤</div>
+                                <div class="folder-details">
+                                    <h3>${escapeHtml(course.name)}</h3>
+                                    <div class="folder-meta">${course.quizzes.length} quiz${course.quizzes.length !== 1 ? 'zes' : ''}</div>
+                                </div>
+                            </div>
+                            <div class="folder-stats">
+                                <div class="folder-stat">
+                                    <div class="folder-stat-value">${courseStats.questions}</div>
+                                    <div class="folder-stat-label">Questions</div>
+                                </div>
+                                <div class="folder-stat">
+                                    <div class="folder-stat-value" style="color: ${courseStats.accuracy >= 70 ? 'var(--success)' : courseStats.answered > 0 ? 'var(--error)' : 'inherit'}">${courseStats.accuracy}%</div>
+                                    <div class="folder-stat-label">Accuracy</div>
+                                </div>
+                                <div class="folder-actions" onclick="event.stopPropagation()">
+                                    <button class="btn btn-small" onclick="openEditCourseModal('${course.id}')">Edit</button>
+                                    <button class="btn btn-small btn-danger" onclick="deleteCourse('${course.id}')">Delete</button>
+                                </div>
+                                <span class="folder-toggle">›</span>
+                            </div>
+                        </div>
+                        <div class="quiz-list">
+                            ${course.quizzes.map(quiz => renderQuizItem(course.id, quiz)).join('')}
+                            <button class="add-quiz-btn" onclick="openAddQuizModal('${course.id}')">+ Add Quiz</button>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        function renderQuizItem(courseId, quiz) {
+            const count = getQuizQuestionCount(quiz.id);
+            const progress = getQuizProgress(quiz.id);
+            const progressPercent = count === 0 ? 0 : Math.round((progress.answered / count) * 100);
+            const accuracy = progress.answered === 0 ? 0 : Math.round((progress.correct / progress.answered) * 100);
+
+            return `
+                <div class="quiz-item">
+                    <div class="quiz-info">
+                        <h4><a href="quiz.html?course=${courseId}&quiz=${quiz.id}" style="color: inherit; text-decoration: none;">${escapeHtml(quiz.name)}</a></h4>
+                        <p>${count} questions · ${progress.answered} answered · ${accuracy}% accuracy</p>
+                    </div>
+                    <div class="quiz-stats">
+                        <div class="quiz-progress">
+                            <div class="quiz-progress-bar" style="width: ${progressPercent}%"></div>
+                        </div>
+                        <div class="quiz-actions">
+                            <button class="btn btn-small" onclick="openEditQuizModal('${courseId}', '${quiz.id}')">Edit</button>
+                            <button class="btn btn-small btn-danger" onclick="deleteQuiz('${courseId}', '${quiz.id}')">Delete</button>
+                        </div>
+                    </div>
+                </div>
+            `;
+        }
+
+        function calculateCourseStats(course) {
+            let questions = 0;
+            let answered = 0;
+            let correct = 0;
+
+            for (const quiz of course.quizzes) {
+                questions += getQuizQuestionCount(quiz.id);
+                const progress = getQuizProgress(quiz.id);
+                answered += progress.answered;
+                correct += progress.correct;
+            }
+
+            return {
+                questions,
+                answered,
+                accuracy: answered === 0 ? 0 : Math.round((correct / answered) * 100)
+            };
+        }
+
+        function toggleFolder(courseId) {
+            const folder = document.getElementById(`folder-${courseId}`);
+            folder.classList.toggle('open');
+        }
+
+        // ============================================================
+        // MODALS
+        // ============================================================
+
+        function openModal(content) {
+            document.getElementById('modal-content').innerHTML = content;
+            document.getElementById('modal-overlay').classList.add('active');
+        }
+
+        function closeModal() {
+            document.getElementById('modal-overlay').classList.remove('active');
+        }
+
+        function openNewCourseModal() {
+            openModal(`
+                <h2>New Course</h2>
+                <div class="error-message" id="modal-error"></div>
+                <div class="form-group">
+                    <label>Course Name</label>
+                    <input type="text" id="course-name" placeholder="e.g., Operating Systems" autofocus>
+                </div>
+                <div class="modal-actions">
+                    <button class="btn" onclick="closeModal()">Cancel</button>
+                    <button class="btn btn-primary" onclick="createCourse()">Create</button>
+                </div>
+            `);
+            setTimeout(() => document.getElementById('course-name').focus(), 100);
+        }
+
+        function openEditCourseModal(courseId) {
+            const data = getData();
+            const course = data.courses.find(c => c.id === courseId);
+            if (!course) return;
+
+            openModal(`
+                <h2>Edit Course</h2>
+                <div class="error-message" id="modal-error"></div>
+                <div class="form-group">
+                    <label>Course Name</label>
+                    <input type="text" id="course-name" value="${escapeHtml(course.name)}">
+                </div>
+                <div class="modal-actions">
+                    <button class="btn" onclick="closeModal()">Cancel</button>
+                    <button class="btn btn-primary" onclick="updateCourse('${courseId}')">Save</button>
+                </div>
+            `);
+        }
+
+        function openAddQuizModal(courseId) {
+            openModal(`
+                <h2>Add Quiz</h2>
+                <div class="error-message" id="modal-error"></div>
+                <div class="form-group">
+                    <label>Quiz Name</label>
+                    <input type="text" id="quiz-name" placeholder="e.g., Ch 1-2: Introduction">
+                </div>
+                <div class="form-group">
+                    <label>Questions (JSON)</label>
+                    <textarea id="quiz-questions" placeholder='[
+  {
+    "question": "Your question here?",
+    "options": ["A", "B", "C", "D"],
+    "answer": "A",
+    "page": 1,
+    "lecture": "Chapter 1"
+  }
+]'></textarea>
+                    <small>Paste a JSON array of question objects. Each needs: question, options, answer.</small>
+                </div>
+                <div class="modal-actions">
+                    <button class="btn" onclick="closeModal()">Cancel</button>
+                    <button class="btn btn-primary" onclick="createQuiz('${courseId}')">Add Quiz</button>
+                </div>
+            `);
+        }
+
+        function openEditQuizModal(courseId, quizId) {
+            const data = getData();
+            const course = data.courses.find(c => c.id === courseId);
+            if (!course) return;
+            const quiz = course.quizzes.find(q => q.id === quizId);
+            if (!quiz) return;
+
+            // Get questions from quiz.questions OR embedded data
+            const EMBEDDED_DATA = {
+                'os_ch1_2': window.OS_CH1_2_DATA,
+                'os_ch3_4': window.OS_CH3_4_DATA,
+                'ai_test_bank': window.AI_TEST_BANK_DATA
+            };
+
+            const questions = quiz.questions || EMBEDDED_DATA[quizId] || [];
+            const questionsJson = questions.length > 0 ? JSON.stringify(questions, null, 2) : '';
+
+            openModal(`
+                <h2>Edit Quiz</h2>
+                <div class="error-message" id="modal-error"></div>
+                <div class="form-group">
+                    <label>Quiz Name</label>
+                    <input type="text" id="quiz-name" value="${escapeHtml(quiz.name)}">
+                </div>
+                <div class="form-group">
+                    <label>Questions (JSON) - ${questions.length} questions</label>
+                    <textarea id="quiz-questions" style="min-height: 300px;">${escapeHtml(questionsJson)}</textarea>
+                    <small>Edit the JSON array to modify questions. Each needs: question, options, answer.</small>
+                </div>
+                <div class="modal-actions">
+                    <button class="btn" onclick="closeModal()">Cancel</button>
+                    <button class="btn btn-primary" onclick="updateQuiz('${courseId}', '${quizId}')">Save</button>
+                </div>
+            `);
+        }
+
+        // ============================================================
+        // CRUD OPERATIONS
+        // ============================================================
+
+        function createCourse() {
+            const name = document.getElementById('course-name').value.trim();
+            if (!name) {
+                showModalError('Please enter a course name.');
+                return;
+            }
+
+            const data = getData();
+            data.courses.push({
+                id: generateId(),
+                name: name,
+                quizzes: []
+            });
+            saveData(data);
+            closeModal();
+            renderCourses();
+            renderStats();
+        }
+
+        function updateCourse(courseId) {
+            const name = document.getElementById('course-name').value.trim();
+            if (!name) {
+                showModalError('Please enter a course name.');
+                return;
+            }
+
+            const data = getData();
+            const course = data.courses.find(c => c.id === courseId);
+            if (course) {
+                course.name = name;
+                saveData(data);
+            }
+            closeModal();
+            renderCourses();
+        }
+
+        function deleteCourse(courseId) {
+            if (!confirm('Delete this course and all its quizzes? This cannot be undone.')) return;
+
+            const data = getData();
+            data.courses = data.courses.filter(c => c.id !== courseId);
+            saveData(data);
+            renderCourses();
+            renderStats();
+        }
+
+        function createQuiz(courseId) {
+            const name = document.getElementById('quiz-name').value.trim();
+            const questionsText = document.getElementById('quiz-questions').value.trim();
+
+            if (!name) {
+                showModalError('Please enter a quiz name.');
+                return;
+            }
+
+            if (!questionsText) {
+                showModalError('Please paste the questions JSON.');
+                return;
+            }
+
+            let questions;
+            try {
+                questions = JSON.parse(questionsText);
+                if (!Array.isArray(questions)) throw new Error('Not an array');
+                if (questions.length === 0) throw new Error('Empty array');
+
+                // Validate structure
+                for (let i = 0; i < questions.length; i++) {
+                    const q = questions[i];
+                    if (!q.question || !q.options || !q.answer) {
+                        throw new Error(`Question ${i + 1} is missing required fields (question, options, answer)`);
+                    }
+                }
+            } catch (e) {
+                showModalError('Invalid JSON: ' + e.message);
+                return;
+            }
+
+            const data = getData();
+            const course = data.courses.find(c => c.id === courseId);
+            if (!course) return;
+
+            const quizId = generateId();
+            course.quizzes.push({
+                id: quizId,
+                name: name,
+                questions: questions
+            });
+
+            // Cache question count
+            localStorage.setItem(`quiz_${quizId}_count`, questions.length);
+
+            saveData(data);
+            closeModal();
+            renderCourses();
+            renderStats();
+        }
+
+        function updateQuiz(courseId, quizId) {
+            const name = document.getElementById('quiz-name').value.trim();
+            const questionsEl = document.getElementById('quiz-questions');
+
+            if (!name) {
+                showModalError('Please enter a quiz name.');
+                return;
+            }
+
+            const data = getData();
+            const course = data.courses.find(c => c.id === courseId);
+            if (!course) {
+                showModalError('Course not found.');
+                return;
+            }
+            const quiz = course.quizzes.find(q => q.id === quizId);
+            if (!quiz) {
+                showModalError('Quiz not found.');
+                return;
+            }
+
+            quiz.name = name;
+
+            // Always try to save questions if the textarea exists
+            if (questionsEl) {
+                const questionsText = questionsEl.value.trim();
+                if (questionsText) {
+                    try {
+                        const questions = JSON.parse(questionsText);
+                        if (!Array.isArray(questions)) throw new Error('Questions must be an array');
+                        if (questions.length === 0) throw new Error('Questions array is empty');
+                        quiz.questions = questions;
+                        localStorage.setItem(`quiz_${quizId}_count`, questions.length);
+                        console.log('Saved', questions.length, 'questions for quiz', quizId);
+                    } catch (e) {
+                        showModalError('Invalid JSON: ' + e.message);
+                        return;
+                    }
+                } else {
+                    showModalError('Questions cannot be empty.');
+                    return;
+                }
+            }
+
+            saveData(data);
+            closeModal();
+            renderCourses();
+            renderStats();
+            alert('Quiz saved! ' + quiz.questions.length + ' questions.');
+        }
+
+        function deleteQuiz(courseId, quizId) {
+            if (!confirm('Delete this quiz? This cannot be undone.')) return;
+
+            const data = getData();
+            const course = data.courses.find(c => c.id === courseId);
+            if (course) {
+                course.quizzes = course.quizzes.filter(q => q.id !== quizId);
+                saveData(data);
+            }
+
+            // Clean up localStorage
+            localStorage.removeItem(`quiz_${quizId}_state`);
+            localStorage.removeItem(`quiz_${quizId}_count`);
+
+            renderCourses();
+            renderStats();
+        }
+
+        function showModalError(message) {
+            const el = document.getElementById('modal-error');
+            el.textContent = message;
+            el.classList.add('show');
+        }
+
+        // ============================================================
+        // UTILITIES
+        // ============================================================
+
+        function escapeHtml(text) {
+            const div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
+        }
+
+        // ============================================================
+        // INIT
+        // ============================================================
+
+        applyTheme(getTheme());
+        renderStats();
+        renderCourses();
+    </script>
+</body>
+
+</html>
